@@ -18,9 +18,11 @@
 
 package dat300;
 
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.shaded.jackson2.org.yaml.snakeyaml.events.Event;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
@@ -43,6 +45,9 @@ public class DataStreamJob {
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		System.out.println("Hello");
 
+
+
+
 		/*
 		 * Here, you can start creating your execution plan for Flink.
 		 *
@@ -63,9 +68,21 @@ public class DataStreamJob {
 		 *
 		 */
 
-		// Execute program, beginning computation.
-		env.execute("Flink Java API Skeleton");
+		DataStream<String> text = env.readTextFile("athena-sshd-processed.log");
 
-		PatternStream<Event>  patternStream = CEP.pattern("Foo","bar");
+		DataStream<String> isThisSink = text.map(new MapFunction<String, String>() {
+			@Override
+			public String map(String value) throws Exception {
+				System.out.print("Hello from map");
+				System.out.println(value);
+				return value;
+			}
+		});
+
+		isThisSink.print();
+
+		// Execute program, beginning computation.
+		env.execute("DataStreamJob");
+
 	}
 }
