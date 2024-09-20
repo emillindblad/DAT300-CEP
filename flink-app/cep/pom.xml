@@ -70,9 +70,16 @@ under the License.
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-cep</artifactId>
             <version>1.20.0</version>
-            </dependency>
+        </dependency>
 
         <!-- Add connector dependencies here. They must be in the default scope (compile). -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-connector-files</artifactId>
+            <version>1.20.0</version>
+            <scope>compile</scope>
+        </dependency>
+
 
         <!-- Example:
 

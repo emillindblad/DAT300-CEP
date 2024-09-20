@@ -18,12 +18,18 @@
 
 package dat300;
 
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.PatternStream;
+import org.apache.flink.connector.file.src.FileSource;
+import org.apache.flink.connector.file.src.reader.TextLineInputFormat;
+import org.apache.flink.core.fs.Path;
 import org.apache.flink.shaded.jackson2.org.yaml.snakeyaml.events.Event;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
 
 /**
  * Skeleton for a Flink DataStream Job.
@@ -43,34 +49,20 @@ public class DataStreamJob {
 		// Sets up the execution environment, which is the main entry point
 		// to building Flink applications.
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-		System.out.println("Hello");
 
+		// Load a file
+		FileSource<String> source =
+			FileSource.forRecordStreamFormat(new TextLineInputFormat(), new Path("athena-sshd-processed.log"))
+			.build();
 
+		// Add FileSource to our execution environment
+		DataStream<String> stream = env.fromSource(
+			source,
+			WatermarkStrategy.noWatermarks(),
+			"FileSource"
+		);
 
-
-		/*
-		 * Here, you can start creating your execution plan for Flink.
-		 *
-		 * Start with getting some data from the environment, like
-		 * 	env.fromSequence(1, 10);
-		 *
-		 * then, transform the resulting DataStream<Long> using operations
-		 * like
-		 * 	.filter()
-		 * 	.flatMap()
-		 * 	.window()
-		 * 	.process()
-		 *
-		 * and many more.
-		 * Have a look at the programming guide:
-		 *
-		 * https://nightlies.apache.org/flink/flink-docs-stable/
-		 *
-		 */
-
-		DataStream<String> text = env.readTextFile("athena-sshd-processed.log");
-
-		DataStream<String> isThisSink = text.map(new MapFunction<String, String>() {
+		DataStream<String> isThisSink = stream.map(new MapFunction<String, String>() {
 			@Override
 			public String map(String value) throws Exception {
 				System.out.print("Hello from map");
