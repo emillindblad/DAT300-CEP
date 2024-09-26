@@ -5,7 +5,7 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
-public abstract class LogFileStreamSimulator implements SourceFunction<String> {
+public class LogFileStreamSimulator implements SourceFunction<EntryWithTimeStamp> {
     private final String filePath;
     private boolean isRunning = true;
 
@@ -14,13 +14,13 @@ public abstract class LogFileStreamSimulator implements SourceFunction<String> {
     }
 
     @Override
-    public void run(SourceContext<String> ctx) throws Exception {
+    public void run(SourceContext<EntryWithTimeStamp> ctx) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
 
         while (isRunning) {
             while((line = reader.readLine()) != null) {
-                ctx.collect(line);
+//                ctx.collect(new EntryWithTimeStamp(line, System.currentTimeMillis()));
             }
             Thread.sleep(1000);
         }
