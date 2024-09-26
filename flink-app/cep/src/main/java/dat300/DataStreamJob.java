@@ -29,6 +29,7 @@ import org.apache.flink.shaded.jackson2.org.yaml.snakeyaml.events.Event;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 
 
 /**
@@ -62,16 +63,20 @@ public class DataStreamJob {
 			"FileSource"
 		);
 
-		DataStream<String> isThisSink = stream.map(new MapFunction<String, String>() {
+		//LogFileStreamSimulator streamSim;
+
+
+		DataStream<EntryWithTimeStamp> logLinesWithPreStamp = stream
+			.map(new MapFunction<String, EntryWithTimeStamp>() {
 			@Override
-			public String map(String value) throws Exception {
-				System.out.print("Hello from map");
-				System.out.println(value);
-				return value;
+			public EntryWithTimeStamp map(String logLine) throws Exception {
+				long preTimeStamp = System.currentTimeMillis();
+				return new EntryWithTimeStamp(logLine,preTimeStamp);
 			}
 		});
 
-		isThisSink.print();
+		//logLinesWithPreStamp.writeAsText("./sink-out");
+		logLinesWithPreStamp.addSink(new PrintSinkFunction<>());
 
 		// Execute program, beginning computation.
 		env.execute("DataStreamJob");
