@@ -1,15 +1,17 @@
 package main
 
 import (
-    "encoding/csv"
-    "fmt"
-    "log"
-    "os"
-    "strconv"
+	"encoding/csv"
+	"fmt"
+	"log"
+	"math"
+	"math/rand"
+	"os"
+	"strconv"
 
-    "github.com/go-echarts/go-echarts/v2/charts"
-    "github.com/go-echarts/go-echarts/v2/opts"
-    // "github.com/go-echarts/go-echarts/v2/types"
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
+	// "github.com/go-echarts/go-echarts/v2/types"
 )
 
 func main() {
@@ -36,7 +38,7 @@ func main() {
     }
 
     // Prepare data for the plot
-    var entryIDs []string
+    var entryIDs []int
     var durations []opts.BarData
 
     // Skip the header row and loop through the data
@@ -47,7 +49,8 @@ func main() {
         }
 
         // Parse entryId, jobStartTime, and jobEndTime
-        entryID := record[0]
+        // entryID := record[0]
+        entryID := i
         jobStartTime, err := strconv.ParseInt(record[1], 10, 64)
         if err != nil {
             log.Fatal(err)
@@ -59,8 +62,9 @@ func main() {
 
         // Calculate job duration in nanoseconds and convert to seconds
 
-        // duration := float64(jobEndTime-jobStartTime) * math.Pow(10, -9)
-        duration := float64(jobEndTime-jobStartTime)
+        duration := float64(jobEndTime-jobStartTime) * math.Pow(10, -9)
+        // duration := float64(jobEndTime-jobStartTime)
+        fmt.Println(duration)
 
         // Append data
         entryIDs = append(entryIDs, entryID)
@@ -96,7 +100,13 @@ func main() {
 
 
     // Render the chart to an HTML file
-    fileName := "job_duration.html"
+
+    randNum := rand.Intn(100000)
+    fmt.Println(randNum);
+    // suffix := base64.StdEncoding.EncodeToString([]byte(randNum))
+
+    fileName := fmt.Sprintf("job_duration-%d.html", randNum)
+
     f, err := os.Create(fileName)
     if err != nil {
         log.Fatal(err)

@@ -1,11 +1,11 @@
 package dat300;
 
 public class EntryWithTimeStamp {
-   public int logLine;
+   public String logLine;
    public long preTimeStamp;
    public long postTimeStamp;
 
-    public EntryWithTimeStamp(int logLine, long preTimeStamp) {
+    public EntryWithTimeStamp(String logLine, long preTimeStamp) {
         this.logLine = logLine;
         this.preTimeStamp = preTimeStamp;
         this.postTimeStamp = -1;
@@ -13,14 +13,14 @@ public class EntryWithTimeStamp {
 
     @Override
     public String toString() {
-        return logLine+ ","+preTimeStamp+","+postTimeStamp;
+        return logLine.hashCode() + ","+preTimeStamp+","+postTimeStamp;
     }
 
-    public int getLogLine() {
+    public String getLogLine() {
         return logLine;
     }
 
-    public void setLogLine(int logLine) {
+    public void setLogLine(String logLine) {
         this.logLine = logLine;
     }
 
