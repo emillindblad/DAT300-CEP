@@ -13,10 +13,18 @@ import (
 )
 
 func main() {
-    // Open the CSV file
-    file, err := os.Open("../../outSink/2024-09-26--18/out.csv")
-    if err != nil {
-        log.Fatal(err)
+    var file *os.File
+    args := os.Args
+
+    if len(args) < 1{
+        fmt.Println("No path to csv passed")
+        return
+    } else {
+        var err error
+        file, err = os.Open(args[1])
+        if err != nil {
+            log.Fatal(err)
+        }
     }
     defer file.Close()
 
@@ -33,8 +41,6 @@ func main() {
 
     // Skip the header row and loop through the data
     for i, record := range records {
-    // for i := 30000; i < 50000; i++ {
-        // record := records[i]
         if i == 0 {
             // Skip the header row
             continue
@@ -52,6 +58,7 @@ func main() {
         }
 
         // Calculate job duration in nanoseconds and convert to seconds
+
         // duration := float64(jobEndTime-jobStartTime) * math.Pow(10, -9)
         duration := float64(jobEndTime-jobStartTime)
 
@@ -89,7 +96,8 @@ func main() {
 
 
     // Render the chart to an HTML file
-    f, err := os.Create("job_duration.html")
+    fileName := "job_duration.html"
+    f, err := os.Create(fileName)
     if err != nil {
         log.Fatal(err)
     }
@@ -97,6 +105,6 @@ func main() {
 
     // Save the chart to an HTML file
     bar.Render(f)
-    fmt.Println("Job duration chart has been generated in 'job_duration.html'")
+    fmt.Printf("Job duration chart has been generated to '%s'\n",fileName)
 }
 
