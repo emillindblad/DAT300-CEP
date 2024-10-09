@@ -9,6 +9,7 @@ import org.apache.flink.cep.PatternSelectFunction;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.cep.pattern.conditions.IterativeCondition;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.file.sink.FileSink;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -22,10 +23,16 @@ import java.util.Map;
 public class DataStreamJob {
     public static void main(String[] args) throws Exception {
 
-        int batchSize = 300;
-        long sleepPeriod = 1000000;
+        int batchSize = 1000;
+        long sleepPeriod = 1000; //1000000 is one millisecond
+        int x = 1024; // For example, 1024 KB (1 MB)
 
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        Configuration configuration = new Configuration();
+        // Set the buffer size (convert KB to bytes)
+        configuration.setLong("taskmanager.memory.network.size", x * 1024); // Network buffer size in bytes
+        configuration.setLong("taskmanager.memory.task.size", x * 1024);
+
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
         env.setParallelism(1);
 
         DataStream<EntryWithTimeStamp> stream = env.addSource(new DataIngestionSource(
