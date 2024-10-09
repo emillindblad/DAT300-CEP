@@ -63,7 +63,8 @@ func main() {
 
 	page := components.NewPage()
 	page.AddCharts(
-		// metrics.PlotJobDuration(records),
+		 //metrics.PlotJobDuration(records),
+		metrics.PlotJobLatency(records),
 		metrics.PlotThroughPut(records),
 	)
 

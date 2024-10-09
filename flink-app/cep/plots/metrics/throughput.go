@@ -11,7 +11,7 @@ import (
 func PlotThroughPut(records [][]string) *charts.Line {
 	fmt.Println("Creating throughput plot")
 
-	denominator := 1000000
+	denominator := 1000000000 //ms=1000000, s =1000000000
 	startTime := ParseCsvStrToInt(records[1][1])
 	endTime := ParseCsvStrToInt(records[len(records)-1][2])
 	fmt.Println("startTime", startTime)
@@ -47,8 +47,8 @@ func PlotThroughPut(records [][]string) *charts.Line {
 	line := charts.NewLine()
 	line.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{Title: "System Throughput Over Time"}),
-		charts.WithXAxisOpts(opts.XAxis{Name: "Time (ms)"}),
-		charts.WithYAxisOpts(opts.YAxis{Name: "Throughput (Active Jobs)"}),
+		charts.WithXAxisOpts(opts.XAxis{Name: "Time (s)"}),
+		charts.WithYAxisOpts(opts.YAxis{Name: "Throughput (Events)"}),
 		charts.WithDataZoomOpts(opts.DataZoom{
 			Type:       "slider",
 			XAxisIndex: []int{0},

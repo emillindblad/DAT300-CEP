@@ -50,13 +50,20 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
 
         while (System.currentTimeMillis() - startTime <= duration) {
             long beforeBatchTime = System.nanoTime();
+            //System.out.println("Adding to queue");
+            //System.out.println("In queue before");
+            //System.out.println(internalQueue.size());
+            while (System.currentTimeMillis() - startTime <= 8000) {
+            }
+
             for (int i = 0; i < batchSize; i++) {
                 String logData = internalBuffer.get(internalBufferIdx);
                 long inputTimestamp = System.nanoTime();
                 internalQueue.add(new EntryWithTimeStamp(logData, inputTimestamp));
                 internalBufferIdx = (internalBufferIdx + 1) % internalBuffer.size();
             }
-
+            System.out.println("In queue at wait");
+            System.out.println(internalQueue.size());
             while (System.nanoTime() < beforeBatchTime + sleepPeriod ) {
             }
         }
@@ -65,6 +72,7 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
 
     @Override
     public void run(SourceContext<EntryWithTimeStamp> ctx) throws Exception {
+        System.out.println("Creating thread");
         new Thread(() -> {
             try {
                 fillInternalQueue();

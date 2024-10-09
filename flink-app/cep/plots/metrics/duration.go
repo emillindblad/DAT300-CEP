@@ -2,7 +2,6 @@ package metrics
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
@@ -25,7 +24,7 @@ func PlotJobDuration(records [][]string) *charts.Bar {
 		jobEndTime := ParseCsvStrToInt(record[2])
 
 		// Calculate job duration in nanoseconds and convert to seconds
-		duration := float64(jobEndTime-jobStartTime) * math.Pow(10, -9)
+		duration := float64(jobEndTime-jobStartTime)
 		// duration := float64(jobEndTime-jobStartTime)
 
 		// Append data
