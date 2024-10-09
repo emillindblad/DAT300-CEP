@@ -11,10 +11,10 @@ public class CustomBucketAssigner implements BucketAssigner<EntryWithTimeStamp, 
 
 
     private final int batchSize;
-    private final int sleepPeriod;
+    private final long sleepPeriod;
 
 
-    public CustomBucketAssigner(int batchSize, int sleepPeriod) {
+    public CustomBucketAssigner(int batchSize, long sleepPeriod) {
         this.batchSize = batchSize;
         this.sleepPeriod = sleepPeriod;
     }
