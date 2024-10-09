@@ -36,6 +36,7 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
     }
 
     private void fillInternalQueue() throws IOException {
+        int id = 0;
         ArrayList<String> internalBuffer = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new FileReader(inputFile));
         String line = reader.readLine();
@@ -53,13 +54,14 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
             //System.out.println("Adding to queue");
             //System.out.println("In queue before");
             //System.out.println(internalQueue.size());
-            while (System.currentTimeMillis() - startTime <= 8000) {
+            while (System.currentTimeMillis() - startTime <= 30000) {
             }
 
             for (int i = 0; i < batchSize; i++) {
                 String logData = internalBuffer.get(internalBufferIdx);
                 long inputTimestamp = System.nanoTime();
-                internalQueue.add(new EntryWithTimeStamp(logData, inputTimestamp));
+                internalQueue.add(new EntryWithTimeStamp(id,logData, inputTimestamp));
+                id++;
                 internalBufferIdx = (internalBufferIdx + 1) % internalBuffer.size();
             }
             System.out.println("In queue at wait");

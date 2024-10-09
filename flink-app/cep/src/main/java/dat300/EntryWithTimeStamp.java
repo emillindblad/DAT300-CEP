@@ -2,10 +2,12 @@ package dat300;
 
 public class EntryWithTimeStamp {
    public String logLine;
+   public int sequentialId;
    public long preTimeStamp;
    public long postTimeStamp;
 
-    public EntryWithTimeStamp(String logLine, long preTimeStamp) {
+    public EntryWithTimeStamp(int id, String logLine, long preTimeStamp) {
+        this.sequentialId = id;
         this.logLine = logLine;
         this.preTimeStamp = preTimeStamp;
         this.postTimeStamp = -1;
@@ -13,7 +15,7 @@ public class EntryWithTimeStamp {
 
     @Override
     public String toString() {
-        return logLine.hashCode() + ","+preTimeStamp+","+postTimeStamp;
+        return sequentialId + ","+preTimeStamp+","+postTimeStamp;
     }
 
     public String getLogLine() {
