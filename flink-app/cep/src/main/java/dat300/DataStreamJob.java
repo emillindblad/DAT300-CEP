@@ -78,23 +78,25 @@ public class DataStreamJob {
                         return entry;
                     }
                 });
+
+        FileSink<EntryWithTimeStamp> outSink = FileSink
+                .forRowFormat( new Path("./outSink"), new SimpleStringEncoder<EntryWithTimeStamp>("UTF-8"))
+                .withBucketAssigner(new CustomBucketAssigner(batchSize, sleepPeriod, parallelismLevel, GetDateTime()))
+                .withRollingPolicy(
+                        OnCheckpointRollingPolicy.build()
+                ).build();
+
+        exitStamp.sinkTo(outSink);
+
+        env.execute("DataStreamJob");
+    }
+
+    public static String GetDateTime(){
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH-mm-ss");
         LocalDateTime now = LocalDateTime.now();
         String date = now.format(dateFormatter);
         String time = now.format(timeFormatter);
-        String dateTime = date + "_" + time;
-        FileSink<EntryWithTimeStamp> outSink = FileSink
-                .forRowFormat( new Path("./outSink"), new SimpleStringEncoder<EntryWithTimeStamp>("UTF-8"))
-                .withBucketAssigner(new CustomBucketAssigner(batchSize, sleepPeriod, parallelismLevel, dateTime))
-                .withRollingPolicy(
-                        OnCheckpointRollingPolicy.build()
-                ).build();
-
-
-        exitStamp.sinkTo(outSink);
-
-        env.execute("DataStreamJob");
-
+        return date + "_" + time;
     }
 }
