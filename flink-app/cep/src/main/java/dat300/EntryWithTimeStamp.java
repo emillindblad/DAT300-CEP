@@ -1,13 +1,13 @@
 package dat300;
 
 public class EntryWithTimeStamp {
-   public String logLine;
+   public LogLine logLine;
    public int sequentialId;
    public long preTimeStamp;
    public long postTimeStamp;
    public int queueSize;
 
-    public EntryWithTimeStamp(int id, String logLine, long preTimeStamp) {
+    public EntryWithTimeStamp(int id, LogLine logLine, long preTimeStamp) {
         this.sequentialId = id;
         this.logLine = logLine;
         this.preTimeStamp = preTimeStamp;
@@ -28,13 +28,13 @@ public class EntryWithTimeStamp {
         return sequentialId + ","+preTimeStamp+","+postTimeStamp+","+queueSize;
     }
 
-    public String getLogLine() {
+    public LogLine getLogLine() {
         return logLine;
     }
 
-    public void setLogLine(String logLine) {
-        this.logLine = logLine;
-    }
+    //public void setLogLine(String logLine) {
+    //    this.logLine = logLine;
+    //}
 
     public long getPreTimeStamp() {
         return preTimeStamp;

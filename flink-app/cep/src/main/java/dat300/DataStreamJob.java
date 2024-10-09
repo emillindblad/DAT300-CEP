@@ -50,13 +50,13 @@ public class DataStreamJob {
                 .where(new IterativeCondition<EntryWithTimeStamp>() {
                     @Override
                     public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
-                        return currentEvent.getLogLine().contains("Invalid user");
+                        return currentEvent.getLogLine().message.contains("Invalid user");
                     }
                 }).next("RepeatedIP").where(new IterativeCondition<EntryWithTimeStamp>() {
                     @Override
                     public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
                         for (EntryWithTimeStamp previousEvent : ctx.getEventsForPattern("InvalidUser")) {
-                            if (currentEvent.getLogLine().split(" ")[8].equals(previousEvent.getLogLine().split(" ")[8])) {
+                            if (currentEvent.getLogLine().message.split(" ")[3].equals(previousEvent.getLogLine().message.split(" ")[3])) {
                                 return true;
                             }
                         }

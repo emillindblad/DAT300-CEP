@@ -58,7 +58,9 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
             }
 
             for (int i = 0; i < batchSize; i++) {
-                String logData = internalBuffer.get(internalBufferIdx);
+//                String logData = internalBuffer.get(internalBufferIdx);
+                LogLine logData = new LogLine(internalBuffer.get(internalBufferIdx));
+                //System.out.println(logData);
                 long inputTimestamp = System.nanoTime();
                 //internalQueue.add(new EntryWithTimeStamp(id, logData, inputTimestamp));
                 internalQueue.add(new EntryWithTimeStamp(id,logData, inputTimestamp,internalQueue.size() ));
