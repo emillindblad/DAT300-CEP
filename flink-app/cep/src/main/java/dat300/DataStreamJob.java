@@ -28,12 +28,12 @@ public class DataStreamJob {
         int batchSize = 300;
         long sleepPeriod = 1000000;
         int parallelismLevel = 2;
-        int x = 1024; // For example, 1024 KB (1 MB)
+        int bufferLimit = 1024; // For example, 1024 KB (1 MB)
 
         Configuration configuration = new Configuration();
         // Set the buffer size (convert KB to bytes)
-        configuration.setLong("taskmanager.memory.network.size", x * 1024); // Network buffer size in bytes
-        configuration.setLong("taskmanager.memory.task.size", x * 1024);
+        configuration.setLong("taskmanager.memory.network.size", bufferLimit * 1024); // Network buffer size in bytes
+        configuration.setLong("taskmanager.memory.task.size", bufferLimit * 1024);
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
         env.setParallelism(1);
@@ -88,7 +88,7 @@ public class DataStreamJob {
 
         FileSink<EntryWithTimeStamp> outSink = FileSink
                 .forRowFormat( new Path("./outSink"), new SimpleStringEncoder<EntryWithTimeStamp>("UTF-8"))
-                .withBucketAssigner(new CustomBucketAssigner(batchSize, sleepPeriod, parallelismLevel, GetDateTime()))
+                .withBucketAssigner(new CustomBucketAssigner(batchSize, sleepPeriod, parallelismLevel, bufferLimit, GetDateTime()))
                 .withRollingPolicy(
                         OnCheckpointRollingPolicy.build()
                 ).build();
