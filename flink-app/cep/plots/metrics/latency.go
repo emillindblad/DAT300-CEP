@@ -21,7 +21,7 @@ func PlotJobLatency(records [][]string) *charts.Line {
 	//var entryIDs []int
 	//var durations []opts.BarData
 	denominator := 1000000000 //ms=1000000, s =1000000000
-	buckets := make(map[int]TimeEntry)	
+	buckets := make(map[int]TimeEntry)
 
 	for i, record := range records {
 		// Skip the header row
@@ -51,7 +51,7 @@ func PlotJobLatency(records [][]string) *charts.Line {
 
 		// Update the bucket with the new TimeEntry
 		buckets[interval] = timeEntry
-		
+
 	}
 
 	// Normalization Step
