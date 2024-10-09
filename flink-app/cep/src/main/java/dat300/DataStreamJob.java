@@ -27,7 +27,7 @@ public class DataStreamJob {
         DataStream<EntryWithTimeStamp> stream = env.addSource(new DataIngestionSource(
                 "athena-sshd-processed.log",
                 1000,
-                10,
+                10, //1000 eq 1 millisecond
                 1000 * 60)
         ).assignTimestampsAndWatermarks(WatermarkStrategy.<EntryWithTimeStamp>forBoundedOutOfOrderness(Duration.ofSeconds(10))
                 .withTimestampAssigner((entry, timestamp) -> entry.getPreTimeStamp()));
@@ -67,7 +67,7 @@ public class DataStreamJob {
                     @Override
                     public EntryWithTimeStamp map(EntryWithTimeStamp entry) throws Exception {
                         entry.setPostTimeStamp(System.nanoTime());
-                        System.out.println(entry);
+                        //System.out.println(entry);
                         return entry;
                     }
                 });

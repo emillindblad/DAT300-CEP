@@ -65,6 +65,8 @@ func PlotJobLatency(records [][]string) *charts.Line {
         }
     }
 
+	// Normalization Step
+
     // Set x to the largest value found minus the starting value
     //x := maxMS - minMS
 	var keys []int
@@ -89,7 +91,6 @@ func PlotJobLatency(records [][]string) *charts.Line {
 		yAxis = append(yAxis, opts.LineData{Value: entry.avgLatency})
 	}
 
-	// Create a new bar chart
 	line := charts.NewLine()
 
 	// Set the chart title and axis labels
@@ -102,7 +103,10 @@ func PlotJobLatency(records [][]string) *charts.Line {
 			Name: "Time (s)",
 		}),
 		charts.WithYAxisOpts(opts.YAxis{
-			Name: "Latency (ms)",
+			Name: "Latency (ms)", // Primary Y-axis
+			Position: "left",
+			AxisLine: &opts.AxisLine{Show: opts.Bool(true)}, // Show axis line
+			SplitLine: &opts.SplitLine{Show: opts.Bool(true)},
 		}),
 		charts.WithDataZoomOpts(opts.DataZoom{
 			Type:       "slider",
@@ -115,6 +119,7 @@ func PlotJobLatency(records [][]string) *charts.Line {
 	// Set the X-axis (entryId) and Y-axis (durations)
 	line.SetXAxis(xAxis).
 		AddSeries("AVG latency (MS)", yAxis)
+		
 
 	return line
 }
