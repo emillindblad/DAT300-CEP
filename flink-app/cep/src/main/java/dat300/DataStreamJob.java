@@ -28,7 +28,7 @@ public class DataStreamJob {
                 "athena-sshd-processed.log",
                 1000,
                 10,
-                1000 * 5)
+                1000 * 60)
         ).assignTimestampsAndWatermarks(WatermarkStrategy.<EntryWithTimeStamp>forBoundedOutOfOrderness(Duration.ofSeconds(10))
                 .withTimestampAssigner((entry, timestamp) -> entry.getPreTimeStamp()));
 
@@ -62,15 +62,17 @@ public class DataStreamJob {
         );
 
         DataStream<EntryWithTimeStamp> exitStamp = patternMatches
+        //DataStream<EntryWithTimeStamp> exitStamp = stream
                 .map(new MapFunction<EntryWithTimeStamp, EntryWithTimeStamp>() {
                     @Override
                     public EntryWithTimeStamp map(EntryWithTimeStamp entry) throws Exception {
                         entry.setPostTimeStamp(System.nanoTime());
+                        System.out.println(entry);
                         return entry;
                     }
                 });
 
-        FileSink<EntryWithTimeStamp> outSink= FileSink
+        FileSink<EntryWithTimeStamp> outSink = FileSink
                 .forRowFormat( new Path("./outSink"), new SimpleStringEncoder<EntryWithTimeStamp>("UTF-8"))
                 .withRollingPolicy(
                         OnCheckpointRollingPolicy.build()
