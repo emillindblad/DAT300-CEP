@@ -67,6 +67,7 @@ func main() {
 		 //metrics.PlotJobDuration(records),
 		metrics.PlotJobLatency(records),
 		metrics.PlotThroughPut(records),
+		metrics.PlotJobQ(records),
 	)
 
 	// Render the charts to an HTML file

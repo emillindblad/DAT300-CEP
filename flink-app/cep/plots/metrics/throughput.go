@@ -9,6 +9,7 @@ import (
 )
 
 func PlotThroughPut(records [][]string) *charts.Line {
+	lastId := 0
 	fmt.Println("Creating throughput plot")
 
 	denominator := 1000000000 //ms=1000000, s =1000000000
@@ -20,8 +21,11 @@ func PlotThroughPut(records [][]string) *charts.Line {
 
 	buckets := make(map[int]int)
 	for _, job := range records {
+		currentId := int(ParseCsvStrToInt(job[0]))
+		processedEvents := calcProcessedObjects(currentId, lastId)
+		lastId = currentId;
 		interval := int(ParseCsvStrToInt(job[2])) / denominator
-		buckets[interval] += 1
+		buckets[interval] += processedEvents
 	}
 
 	/* for t := startTime; t <= endTime; t += interval {
@@ -80,4 +84,15 @@ func generateLineItems(keys []int, buckets map[int]int) []opts.LineData {
 		items = append(items, opts.LineData{Value: buckets[key]})
 	}
 	return items
+}
+
+func calcProcessedObjects(x, y int) int {
+    result := x - y // Calculate the difference
+
+    if result < 0 {
+        fmt.Println("The result is negative:", result)
+		return 0
+    }
+
+    return result // Return the calculated value
 }
