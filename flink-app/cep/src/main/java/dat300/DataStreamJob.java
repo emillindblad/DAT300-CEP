@@ -26,8 +26,8 @@ public class DataStreamJob {
 
         DataStream<EntryWithTimeStamp> stream = env.addSource(new DataIngestionSource(
                 "athena-sshd-processed.log",
-                1000,
-                10,
+                300,
+                1000000,
                 1000 * 60)
         ).assignTimestampsAndWatermarks(WatermarkStrategy.<EntryWithTimeStamp>forBoundedOutOfOrderness(Duration.ofSeconds(10))
                 .withTimestampAssigner((entry, timestamp) -> entry.getPreTimeStamp()));
@@ -74,6 +74,7 @@ public class DataStreamJob {
 
         FileSink<EntryWithTimeStamp> outSink = FileSink
                 .forRowFormat( new Path("./outSink"), new SimpleStringEncoder<EntryWithTimeStamp>("UTF-8"))
+                .withBucketAssigner(new CustomBucketAssigner(300, 1000000))
                 .withRollingPolicy(
                         OnCheckpointRollingPolicy.build()
                 ).build();
