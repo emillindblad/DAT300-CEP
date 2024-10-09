@@ -12,21 +12,21 @@ public class CustomBucketAssigner implements BucketAssigner<EntryWithTimeStamp, 
 
     private final int batchSize;
     private final long sleepPeriod;
+    private final int parallelismLevel;
+    private final String dateTime;
 
 
-    public CustomBucketAssigner(int batchSize, long sleepPeriod) {
+    public CustomBucketAssigner(int batchSize, long sleepPeriod, int parallelismLevel, String dateTime) {
         this.batchSize = batchSize;
         this.sleepPeriod = sleepPeriod;
+        this.parallelismLevel = parallelismLevel;
+        this.dateTime = dateTime;
     }
     @Override
     public String getBucketId(EntryWithTimeStamp element, Context context) {
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM-dd");
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH-mm-ss");
-        LocalDateTime now = LocalDateTime.now();
-        String date = now.format(dateFormatter);
-        String time = now.format(timeFormatter);
 
-        return date + "-" + time + "-b" + batchSize + "-s" + sleepPeriod;
+
+        return dateTime + "-b" + batchSize + "-s" + sleepPeriod + "-p" + parallelismLevel;
     }
 
     @Override

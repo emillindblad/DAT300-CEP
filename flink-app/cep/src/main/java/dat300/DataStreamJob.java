@@ -16,6 +16,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.OnCheckpointRollingPolicy;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -24,9 +26,10 @@ public class DataStreamJob {
 
         int batchSize = 300;
         long sleepPeriod = 1000000;
+        int parallelismLevel = 2;
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(1);
+        env.setParallelism(parallelismLevel);
 
         DataStream<EntryWithTimeStamp> stream = env.addSource(new DataIngestionSource(
                 "athena-sshd-processed.log",
@@ -78,15 +81,22 @@ public class DataStreamJob {
 
         FileSink<EntryWithTimeStamp> outSink = FileSink
                 .forRowFormat( new Path("./outSink"), new SimpleStringEncoder<EntryWithTimeStamp>("UTF-8"))
-                .withBucketAssigner(new CustomBucketAssigner(batchSize, sleepPeriod))
+                .withBucketAssigner(new CustomBucketAssigner(batchSize, sleepPeriod, parallelismLevel, GetDateTime()))
                 .withRollingPolicy(
                         OnCheckpointRollingPolicy.build()
                 ).build();
 
-
         exitStamp.sinkTo(outSink);
 
         env.execute("DataStreamJob");
+    }
 
+    public static String GetDateTime(){
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH-mm-ss");
+        LocalDateTime now = LocalDateTime.now();
+        String date = now.format(dateFormatter);
+        String time = now.format(timeFormatter);
+        return date + "_" + time;
     }
 }
