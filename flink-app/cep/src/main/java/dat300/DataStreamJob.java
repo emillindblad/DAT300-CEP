@@ -44,19 +44,23 @@ public class DataStreamJob {
                 sleepPeriod,
                 1000 * 60)
         ).assignTimestampsAndWatermarks(WatermarkStrategy.<EntryWithTimeStamp>forBoundedOutOfOrderness(Duration.ofSeconds(10))
-                .withTimestampAssigner((entry, timestamp) -> entry.getPreTimeStamp()));
+                .withTimestampAssigner((entry, timestamp) -> entry.logLine.getUnixTimeStamp()));
 
         Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
                 .where(new IterativeCondition<EntryWithTimeStamp>() {
                     @Override
                     public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
+                        System.out.println(currentEvent.getLogLine().message.contains("Invalid user"));
                         return currentEvent.getLogLine().message.contains("Invalid user");
                     }
                 }).next("RepeatedIP").where(new IterativeCondition<EntryWithTimeStamp>() {
                     @Override
                     public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
                         for (EntryWithTimeStamp previousEvent : ctx.getEventsForPattern("InvalidUser")) {
-                            if (currentEvent.getLogLine().message.split(" ")[3].equals(previousEvent.getLogLine().message.split(" ")[3])) {
+                            if (currentEvent.getLogLine().message.split(" ")[4].equals(previousEvent.getLogLine().message.split(" ")[4])) {
+                                System.out.println("Swag");
+                                System.out.println(currentEvent.getLogLine().message);
+                                System.out.println(previousEvent.getLogLine().message);
                                 return true;
                             }
                         }

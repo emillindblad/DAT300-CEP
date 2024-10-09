@@ -1,5 +1,9 @@
 package dat300;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+
 public class LogLine {
     public String timeStamp;
     public String hostName;
@@ -12,6 +16,18 @@ public class LogLine {
         this.timeStamp = String.format("%s %s %s",splitTimeHostname[0], splitTimeHostname[1], splitTimeHostname[2]);
         this.hostName = splitTimeHostname[3];
         this.message = splitTimeMsg[1];
+    }
+
+    public long getUnixTimeStamp() {
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd HH:mm:ss");
+        int currentYear = LocalDateTime.now().getYear();
+        
+        String timestampWithYear = this.timeStamp + " " + currentYear;
+        DateTimeFormatter formatterWithYear = DateTimeFormatter.ofPattern("MMM dd HH:mm:ss yyyy");
+        LocalDateTime dateTime = LocalDateTime.parse(timestampWithYear, formatterWithYear);
+
+        long unixTime = dateTime.toEpochSecond(ZoneOffset.UTC);
+        return  unixTime;
     }
 
     @Override
