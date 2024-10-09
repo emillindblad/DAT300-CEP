@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 public class DataStreamJob {
-
-
     public static void main(String[] args) throws Exception {
 
         int batchSize = 300;
