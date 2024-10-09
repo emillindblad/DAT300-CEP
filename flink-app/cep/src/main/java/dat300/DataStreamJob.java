@@ -21,13 +21,17 @@ import java.util.Map;
 
 public class DataStreamJob {
     public static void main(String[] args) throws Exception {
+
+        int batchSize = 300;
+        long sleepPeriod = 1000000;
+
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
         DataStream<EntryWithTimeStamp> stream = env.addSource(new DataIngestionSource(
                 "athena-sshd-processed.log",
-                1000,
-                10, //1000 eq 1 millisecond
+                batchSize,
+                sleepPeriod,
                 1000 * 60)
         ).assignTimestampsAndWatermarks(WatermarkStrategy.<EntryWithTimeStamp>forBoundedOutOfOrderness(Duration.ofSeconds(10))
                 .withTimestampAssigner((entry, timestamp) -> entry.getPreTimeStamp()));
@@ -74,6 +78,7 @@ public class DataStreamJob {
 
         FileSink<EntryWithTimeStamp> outSink = FileSink
                 .forRowFormat( new Path("./outSink"), new SimpleStringEncoder<EntryWithTimeStamp>("UTF-8"))
+                .withBucketAssigner(new CustomBucketAssigner(batchSize, sleepPeriod))
                 .withRollingPolicy(
                         OnCheckpointRollingPolicy.build()
                 ).build();

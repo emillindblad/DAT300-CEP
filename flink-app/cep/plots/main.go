@@ -4,9 +4,10 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
-	"math/rand"
+	//"math/rand"
 	"os"
 	"path/filepath"
+    "time"
 
 	"dat300/metrics"
 
@@ -70,11 +71,9 @@ func main() {
 	)
 
 	// Render the charts to an HTML file
-	randNum := rand.Intn(100000)
-	// randNum := 1
 	// suffix := base64.StdEncoding.EncodeToString([]byte(randNum))
-
-	fileName := fmt.Sprintf("flink-charts-%d.html", randNum)
+    t := time.Now()
+	fileName := fmt.Sprintf("flink-charts-%s.html", t.Format("20060102150405"))
 
 	f, err := os.Create(fileName)
 	if err != nil {
