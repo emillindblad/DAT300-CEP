@@ -4,117 +4,82 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
-	"math"
 	"math/rand"
 	"os"
-	"strconv"
+	"path/filepath"
 
-	"github.com/go-echarts/go-echarts/v2/charts"
-	"github.com/go-echarts/go-echarts/v2/opts"
-	// "github.com/go-echarts/go-echarts/v2/types"
+	"dat300/metrics"
+
+	"github.com/go-echarts/go-echarts/v2/components"
 )
 
-func main() {
-    var file *os.File
-    args := os.Args
+func loadCsvFromDir(path string) [][]string {
+	var records [][]string
 
-    if len(args) < 1{
-        fmt.Println("No path to csv passed")
-        return
-    } else {
-        var err error
-        file, err = os.Open(args[1])
-        if err != nil {
-            log.Fatal(err)
-        }
-    }
-    defer file.Close()
+	files, err := os.ReadDir(path)
+	fmt.Println(files)
+	if err != nil {
+		log.Fatal("Failed to read dir")
+	}
 
-    // Parse the CSV file
-    reader := csv.NewReader(file)
-    records, err := reader.ReadAll()
-    if err != nil {
-        log.Fatal(err)
-    }
+	for _, file := range files {
+		csvFilePath := filepath.Join(path, file.Name())
 
-    // Prepare data for the plot
-    var entryIDs []int
-    var durations []opts.BarData
+		file, err := os.Open(csvFilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
 
-    // Skip the header row and loop through the data
-    for i, record := range records {
-        if i == 0 {
-            // Skip the header row
-            continue
-        }
+		reader := csv.NewReader(file)
+		record, err := reader.ReadAll()
+		if err != nil {
+			log.Fatal(err)
+		}
 
-        // Parse entryId, jobStartTime, and jobEndTime
-        // entryID := record[0]
-        entryID := i
-        jobStartTime, err := strconv.ParseInt(record[1], 10, 64)
-        if err != nil {
-            log.Fatal(err)
-        }
-        jobEndTime, err := strconv.ParseInt(record[2], 10, 64)
-        if err != nil {
-            log.Fatal(err)
-        }
+		for _, data := range record {
+			records = append(records, data)
+		}
 
-        // Calculate job duration in nanoseconds and convert to seconds
-
-        duration := float64(jobEndTime-jobStartTime) * math.Pow(10, -9)
-        // duration := float64(jobEndTime-jobStartTime)
-        fmt.Println(duration)
-
-        // Append data
-        entryIDs = append(entryIDs, entryID)
-        durations = append(durations, opts.BarData{Value: duration})
-    }
-
-    // Create a new bar chart
-    bar := charts.NewBar()
-
-    // Set the chart title and axis labels
-    bar.SetGlobalOptions(
-        charts.WithTitleOpts(opts.Title{
-            Title:    "Job Duration for Each Entry",
-            Subtitle: "Job durations in seconds",
-        }),
-        charts.WithXAxisOpts(opts.XAxis{
-            Name: "Entry ID",
-        }),
-        charts.WithYAxisOpts(opts.YAxis{
-            Name: "Job Duration (nano-seconds)",
-        }),
-        charts.WithDataZoomOpts(opts.DataZoom{
-            Type: "slider",
-            XAxisIndex: []int{0},
-            Start:      0,
-            End:        100,
-        }),
-    )
-
-    // Set the X-axis (entryId) and Y-axis (durations)
-    bar.SetXAxis(entryIDs).
-        AddSeries("Job Duration (s)", durations)
-
-
-    // Render the chart to an HTML file
-
-    randNum := rand.Intn(100000)
-    fmt.Println(randNum);
-    // suffix := base64.StdEncoding.EncodeToString([]byte(randNum))
-
-    fileName := fmt.Sprintf("job_duration-%d.html", randNum)
-
-    f, err := os.Create(fileName)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer f.Close()
-
-    // Save the chart to an HTML file
-    bar.Render(f)
-    fmt.Printf("Job duration chart has been generated to '%s'\n",fileName)
+	}
+	// TODO: Investigate sorting of files
+	// sort.Slice(records, func(i, j int) bool {
+	// 	return records[i][1] < records[j][1]
+	// })
+	return records
 }
 
+func main() {
+	dirPath := os.Args[1]
+
+	var records [][]string
+
+	if len(dirPath) < 1 {
+		fmt.Println("No path to csv passed")
+		return
+	} else {
+		records = loadCsvFromDir(dirPath)
+	}
+
+	page := components.NewPage()
+	page.AddCharts(
+		// metrics.PlotJobDuration(records),
+		metrics.PlotThroughPut(records),
+	)
+
+	// Render the charts to an HTML file
+	randNum := rand.Intn(100000)
+	// randNum := 1
+	// suffix := base64.StdEncoding.EncodeToString([]byte(randNum))
+
+	fileName := fmt.Sprintf("flink-charts-%d.html", randNum)
+
+	f, err := os.Create(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	page.Render(f)
+	fmt.Printf("Charts has been generated to '%s'\n", fileName)
+}

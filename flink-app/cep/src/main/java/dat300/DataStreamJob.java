@@ -66,7 +66,6 @@ public class DataStreamJob {
                     @Override
                     public EntryWithTimeStamp map(EntryWithTimeStamp entry) throws Exception {
                         entry.setPostTimeStamp(System.nanoTime());
-                        System.out.println(entry);
                         return entry;
                     }
                 });
@@ -78,7 +77,7 @@ public class DataStreamJob {
                 ).build();
 
 
-        exitStamp.sinkTo(outSink).setParallelism(1);
+        exitStamp.sinkTo(outSink);
 
         env.execute("DataStreamJob");
 
