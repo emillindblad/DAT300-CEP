@@ -54,6 +54,7 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
             //System.out.println("Adding to queue");
             //System.out.println("In queue before");
             //System.out.println(internalQueue.size());
+            System.out.println("Waiting for 30 seconds");
             while (System.currentTimeMillis() - startTime <= 30000) {
             }
 
@@ -63,7 +64,7 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
                 //System.out.println(logData);
                 long inputTimestamp = System.nanoTime();
                 //internalQueue.add(new EntryWithTimeStamp(id, logData, inputTimestamp));
-                internalQueue.add(new EntryWithTimeStamp(id,logData, inputTimestamp,internalQueue.size() ));
+                internalQueue.add(new EntryWithTimeStamp(id, logData, inputTimestamp,internalQueue.size()));
 
                 id++;
                 internalBufferIdx = (internalBufferIdx + 1) % internalBuffer.size();

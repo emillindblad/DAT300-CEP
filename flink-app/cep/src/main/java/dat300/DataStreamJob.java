@@ -26,7 +26,7 @@ public class DataStreamJob {
     public static void main(String[] args) throws Exception {
 
         int batchSize = 300;
-        long sleepPeriod = 1000000;
+        long sleepPeriod = 1000000; //Nanoseconds
         int parallelismLevel = 2;
         int bufferLimit = 1024; // For example, 1024 KB (1 MB)
 

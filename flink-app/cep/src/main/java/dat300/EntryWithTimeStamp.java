@@ -15,7 +15,7 @@ public class EntryWithTimeStamp {
         this.queueSize = -1;
     }
 
-    public EntryWithTimeStamp(int id, String logLine, long preTimeStamp, int queue) {
+    public EntryWithTimeStamp(int id, LogLine logLine, long preTimeStamp, int queue) {
         this.sequentialId = id;
         this.logLine = logLine;
         this.preTimeStamp = preTimeStamp;
