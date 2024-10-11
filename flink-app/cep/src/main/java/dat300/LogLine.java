@@ -27,7 +27,7 @@ public class LogLine {
         LocalDateTime dateTime = LocalDateTime.parse(timestampWithYear, formatterWithYear);
 
         long unixTime = dateTime.toEpochSecond(ZoneOffset.UTC);
-        return  unixTime;
+        return  unixTime * 1000;
     }
 
     @Override
