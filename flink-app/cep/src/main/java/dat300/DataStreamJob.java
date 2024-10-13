@@ -3,7 +3,6 @@ package dat300;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
-import org.apache.flink.api.common.time.Time;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.PatternSelectFunction;
 import org.apache.flink.cep.PatternStream;
@@ -26,7 +25,7 @@ public class DataStreamJob {
     public static void main(String[] args) throws Exception {
 
         int batchSize = 300;
-        long sleepPeriod = 1000000;
+        long sleepPeriod = 1000000; //Nanoseconds
         int parallelismLevel = 2;
         int bufferLimit = 1024; // For example, 1024 KB (1 MB)
 
@@ -42,27 +41,35 @@ public class DataStreamJob {
                 "athena-sshd-processed.log",
                 batchSize,
                 sleepPeriod,
-                1000 * 60)
+                1000 * 600)
         ).assignTimestampsAndWatermarks(WatermarkStrategy.<EntryWithTimeStamp>forBoundedOutOfOrderness(Duration.ofSeconds(10))
-                .withTimestampAssigner((entry, timestamp) -> entry.getPreTimeStamp()));
+                .withTimestampAssigner((entry, timestamp) -> entry.logLine.getUnixTimeStamp()));
 
         Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
                 .where(new IterativeCondition<EntryWithTimeStamp>() {
                     @Override
                     public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
-                        return currentEvent.getLogLine().contains("Invalid user");
+                        if (currentEvent.getLogLine().message.contains("Invalid user")) {
+                            System.out.println(currentEvent.sequentialId + " " + currentEvent.getLogLine().message);
+                            System.out.println("----");
+                            return true;
+                        }
+                        return false;
                     }
-                }).next("RepeatedIP").where(new IterativeCondition<EntryWithTimeStamp>() {
+                }).followedBy("RepeatedIP").where(new IterativeCondition<EntryWithTimeStamp>() {
                     @Override
                     public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
                         for (EntryWithTimeStamp previousEvent : ctx.getEventsForPattern("InvalidUser")) {
-                            if (currentEvent.getLogLine().split(" ")[8].equals(previousEvent.getLogLine().split(" ")[8])) {
+                           if (currentEvent.getLogLine().message.split(" ")[4].equals(previousEvent.getLogLine().message.split(" ")[4])) {
+                               System.out.println(currentEvent.getLogLine().timeStamp + " " + currentEvent.getLogLine().message);
+                               System.out.println(previousEvent.getLogLine().timeStamp + " " + previousEvent.getLogLine().message);
+                               System.out.println("-");
                                 return true;
                             }
                         }
                         return false;
                     }
-                }).within(Time.minutes(10).toDuration());
+                }).within(Duration.ofMinutes(2));
 
         PatternStream<EntryWithTimeStamp> patternStream = CEP.pattern(stream, pattern);
 
