@@ -33,12 +33,15 @@ func PlotJobLatency(records [][]string) *charts.Line {
 
 		jobStartTime := ParseCsvStrToInt(record[1])
 		jobEndTime := ParseCsvStrToInt(record[2])
+		//println(jobStartTime)
+		//println(jobEndTime)
 
 		// Calculate job duration in nanoseconds and convert to milliseconds seconds
 		duration := float64(jobEndTime-jobStartTime) * math.Pow(10, -6)
 		// duration := float64(jobEndTime-jobStartTime)
 
 		interval := int(jobEndTime) / denominator
+		//fmt.Printf("interval: %d\n", interval)
 		timeEntry := getOrCreate(buckets, interval)
 
 		// Increment events count first
@@ -129,7 +132,7 @@ func getOrCreate(buckets map[int]TimeEntry, key int) TimeEntry {
     if entry, exists := buckets[key]; exists {
         return entry // Return the existing entry
     }
-
+	fmt.Printf("new bucket: %d\n", key)
     // If the key does not exist, create a new TimeEntry
     newEntry := TimeEntry{
         // Initialize fields as necessary
