@@ -50,8 +50,8 @@ public class DataStreamJob {
                     @Override
                     public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
                         if (currentEvent.getLogLine().message.contains("Invalid user")) {
-                            System.out.println(currentEvent.sequentialId + " " + currentEvent.getLogLine().message);
-                            System.out.println("----");
+                            //System.out.println(currentEvent.sequentialId + " " + currentEvent.getLogLine().message);
+                            //System.out.println("----");
                             return true;
                         }
                         return false;
