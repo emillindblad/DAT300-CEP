@@ -14,19 +14,19 @@ public class CustomBucketAssigner implements BucketAssigner<EntryWithTimeStamp, 
     private final long sleepPeriod;
     private final int parallelismLevel;
     private final String dateTime;
+    private final int bufferLimit;
 
 
-    public CustomBucketAssigner(int batchSize, long sleepPeriod, int parallelismLevel, String dateTime) {
+    public CustomBucketAssigner(int batchSize, long sleepPeriod, int parallelismLevel, int bufferLimit, String dateTime) {
         this.batchSize = batchSize;
         this.sleepPeriod = sleepPeriod;
         this.parallelismLevel = parallelismLevel;
         this.dateTime = dateTime;
+        this.bufferLimit = bufferLimit;
     }
     @Override
     public String getBucketId(EntryWithTimeStamp element, Context context) {
-
-
-        return dateTime + "-b" + batchSize + "-s" + sleepPeriod + "-p" + parallelismLevel;
+        return dateTime + "-b" + batchSize + "-s" + sleepPeriod + "-p" + parallelismLevel + "-bL" + bufferLimit;
     }
 
     @Override
