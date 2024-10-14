@@ -2,7 +2,6 @@ package metrics
 
 import (
 	"fmt"
-	"math"
 	"sort"
 
 	"github.com/go-echarts/go-echarts/v2/charts"
@@ -10,18 +9,19 @@ import (
 )
 
 // Define a struct with three int fields
-type TimeEntry struct {
-    milliSecond int
-    avgLatency float64
+
+type TimeEntryQ struct {
+    second int
     nrOfEvents int
+	avgQueueSize float64
 }
 
-func PlotJobLatency(records [][]string) *charts.Line {
-	fmt.Println("Creating latency plot")
+func PlotJobQ(records [][]string) *charts.Line {
+	fmt.Println("Creating queue plot")
 	//var entryIDs []int
 	//var durations []opts.BarData
 	denominator := 1000000000 //ms=1000000, s =1000000000
-	buckets := make(map[int]TimeEntry)
+	buckets := make(map[int]TimeEntryQ)
 
 	for i, record := range records {
 		// Skip the header row
@@ -30,27 +30,22 @@ func PlotJobLatency(records [][]string) *charts.Line {
 		}
 
 		//entryID := i
-
-		jobStartTime := ParseCsvStrToInt(record[1])
 		jobEndTime := ParseCsvStrToInt(record[2])
-		//println(jobStartTime)
-		//println(jobEndTime)
+		queueSize := ParseCsvStrToInt(record[3])
 
 		// Calculate job duration in nanoseconds and convert to milliseconds seconds
-		duration := float64(jobEndTime-jobStartTime) * math.Pow(10, -6)
 		// duration := float64(jobEndTime-jobStartTime)
 
 		interval := int(jobEndTime) / denominator
-		//fmt.Printf("interval: %d\n", interval)
-		timeEntry := getOrCreate(buckets, interval)
+		timeEntry := getOrCreateQ(buckets, interval)
 
 		// Increment events count first
 		timeEntry.nrOfEvents++
 
 		// Calculate new average after incrementing
-		newAVG := (timeEntry.avgLatency*float64(timeEntry.nrOfEvents-1) + duration) / float64(timeEntry.nrOfEvents)
-		timeEntry.milliSecond = interval
-		timeEntry.avgLatency = newAVG
+		newAvgQueue := (float64(timeEntry.avgQueueSize)*float64(timeEntry.nrOfEvents-1) + float64(queueSize)) / float64(timeEntry.nrOfEvents)
+		timeEntry.second = interval
+		timeEntry.avgQueueSize = newAvgQueue
 
 		// Update the bucket with the new TimeEntry
 		buckets[interval] = timeEntry
@@ -58,17 +53,16 @@ func PlotJobLatency(records [][]string) *charts.Line {
 	}
 
 	// Normalization Step
-    var minMS, maxMS int
+    var minS, maxS int
     for k := range buckets {
-        if minMS == 0 || k < minMS {
-            minMS = k
+        if minS == 0 || k < minS {
+            minS = k
         }
-        if k > maxMS {
-            maxMS = k
+        if k > maxS {
+            maxS = k
         }
     }
 
-	// Normalization Step
 
     // Set x to the largest value found minus the starting value
     //x := maxMS - minMS
@@ -80,18 +74,18 @@ func PlotJobLatency(records [][]string) *charts.Line {
 
 	var xAxis []int
 	var yAxis []opts.LineData
-	fmt.Println("latency data")
+	fmt.Println("queu data")
 	fmt.Println("startTime", keys[0])
 	fmt.Println("endTime", keys[len(keys)-1])
-	fmt.Println("total ms", (keys[len(keys)-1]- keys[0]))
+	fmt.Println("total s", (keys[len(keys)-1]- keys[0]))
 
 	// Extract values in sorted order
 	for _, key := range keys {
 		entry := buckets[key]
 		// Normalize the milliSecond value
-		normalizedMS := entry.milliSecond - minMS + 1 // Normalize to range 1 to x
+		normalizedMS := entry.second - minS + 1 // Normalize to range 1 to x
 		xAxis = append(xAxis, normalizedMS)
-		yAxis = append(yAxis, opts.LineData{Value: entry.avgLatency})
+		yAxis = append(yAxis, opts.LineData{Value: entry.avgQueueSize})
 	}
 
 	line := charts.NewLine()
@@ -99,14 +93,14 @@ func PlotJobLatency(records [][]string) *charts.Line {
 	// Set the chart title and axis labels
 	line.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{
-			Title:    "AVG Latency",
-			Subtitle: "Latency (ms)",
+			Title:    "AVG Queue",
+			Subtitle: "Queue (events)",
 		}),
 		charts.WithXAxisOpts(opts.XAxis{
 			Name: "Time (s)",
 		}),
 		charts.WithYAxisOpts(opts.YAxis{
-			Name: "Latency (ms)", // Primary Y-axis
+			Name: "Queue (events)", // Primary Y-axis
 			Position: "left",
 			AxisLine: &opts.AxisLine{Show: opts.Bool(true)}, // Show axis line
 			SplitLine: &opts.SplitLine{Show: opts.Bool(true)},
@@ -121,23 +115,21 @@ func PlotJobLatency(records [][]string) *charts.Line {
 
 	// Set the X-axis (entryId) and Y-axis (durations)
 	line.SetXAxis(xAxis).
-		AddSeries("AVG latency (MS)", yAxis)
-		
-
+		AddSeries("AVG Queue (events)", yAxis)
 	return line
 }
 
-func getOrCreate(buckets map[int]TimeEntry, key int) TimeEntry {
+func getOrCreateQ(buckets map[int]TimeEntryQ, key int) TimeEntryQ {
     // Check if the key exists in the map
     if entry, exists := buckets[key]; exists {
         return entry // Return the existing entry
     }
-	fmt.Printf("new bucket: %d\n", key)
+
     // If the key does not exist, create a new TimeEntry
-    newEntry := TimeEntry{
+    newEntry := TimeEntryQ{
         // Initialize fields as necessary
-		avgLatency: 0,
 		nrOfEvents: 0,
+		avgQueueSize: 0,
     }
     buckets[key] = newEntry // Add the new entry to the map
 

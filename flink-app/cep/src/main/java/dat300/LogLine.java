@@ -3,6 +3,7 @@ package dat300;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 public class LogLine {
     public String timeStamp;
@@ -23,7 +24,7 @@ public class LogLine {
         int currentYear = LocalDateTime.now().getYear();
         
         String timestampWithYear = this.timeStamp + " " + currentYear;
-        DateTimeFormatter formatterWithYear = DateTimeFormatter.ofPattern("MMM dd HH:mm:ss yyyy");
+        DateTimeFormatter formatterWithYear = DateTimeFormatter.ofPattern("MMM dd HH:mm:ss yyyy", Locale.ENGLISH);
         LocalDateTime dateTime = LocalDateTime.parse(timestampWithYear, formatterWithYear);
 
         long unixTime = dateTime.toEpochSecond(ZoneOffset.UTC);
