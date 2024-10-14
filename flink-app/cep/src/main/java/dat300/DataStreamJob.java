@@ -41,7 +41,7 @@ public class DataStreamJob {
                 "athena-sshd-processed.log",
                 batchSize,
                 sleepPeriod,
-                1000 * 600)
+                1000 * 200)
         ).assignTimestampsAndWatermarks(WatermarkStrategy.<EntryWithTimeStamp>forBoundedOutOfOrderness(Duration.ofSeconds(10))
                 .withTimestampAssigner((entry, timestamp) -> entry.logLine.getUnixTimeStamp()));
 
