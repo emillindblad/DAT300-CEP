@@ -4,12 +4,14 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
+
 	//"math/rand"
+	"dat300/metrics"
 	"os"
 	"path/filepath"
-    "time"
-
-	"dat300/metrics"
+	"sort"
+	"strconv"
+	"time"
 
 	"github.com/go-echarts/go-echarts/v2/components"
 )
@@ -43,10 +45,15 @@ func loadCsvFromDir(path string) [][]string {
 		}
 
 	}
-	// TODO: Investigate sorting of files
-	// sort.Slice(records, func(i, j int) bool {
-	// 	return records[i][1] < records[j][1]
-	// })
+	
+	sort.Slice(records, func(i, j int) bool {
+		num1, err1 := strconv.Atoi(records[i][0])
+		num2, err2 := strconv.Atoi(records[j][0])
+		if err1 != nil || err2 != nil {
+			log.Fatal("Failed to convert to integer:", err1, err2)
+		}
+		return num1 < num2
+	})
 	return records
 }
 

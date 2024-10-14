@@ -45,7 +45,7 @@ public class DataStreamJob {
         configuration.setLong("taskmanager.memory.task.size", bufferLimit * 1024);
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
-        env.setParallelism(1);
+        env.setParallelism(parallelismLevel);
 
         DataStream<EntryWithTimeStamp> stream = env.addSource(new DataIngestionSource(
                 "athena-sshd-processed.log",
@@ -53,7 +53,7 @@ public class DataStreamJob {
                 sleepPeriod,
                 1000 * 60)
         ).assignTimestampsAndWatermarks(WatermarkStrategy.<EntryWithTimeStamp>forBoundedOutOfOrderness(Duration.ofSeconds(10))
-                .withTimestampAssigner((entry, timestamp) -> scaleTimestamp(entry.logLine.getUnixTimeStamp())));
+                .withTimestampAssigner((entry, timestamp) -> scaleTimestamp(entry.logLine.getUnixTimeStamp()))); //source should not be parallel
 
         Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
                 .where(new IterativeCondition<EntryWithTimeStamp>() {
