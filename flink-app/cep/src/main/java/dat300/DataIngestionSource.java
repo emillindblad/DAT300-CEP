@@ -51,6 +51,7 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
         while (System.currentTimeMillis() - startTime <= 30000) {}
 
         int internalBufferIdx = 0;
+        long totalEvents = 0;
 
         while (System.currentTimeMillis() - startTime <= duration) {
             long beforeBatchTime = System.nanoTime();
@@ -64,10 +65,12 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
             int internalQueuSize = internalQueue.size();
             long inputTimestamp = System.nanoTime(); //syscall == expensive in time
             int endIdx = internalBufferIdx + batchSize;
+
             for (int i = internalBufferIdx ; i < endIdx; i++) {
                 LogLine logData = new LogLine(internalBuffer.get(i));
                 internalQueue.add(new EntryWithTimeStamp(i + internalBufferIdx, logData, inputTimestamp,internalQueuSize));
                 inputTimestamp++; //adding 1 for ordering (part of optimization)
+                totalEvents++;
             }
             internalBufferIdx = internalBufferIdx+batchSize;
             //System.out.println("Batch completed");
@@ -75,6 +78,7 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
             while (System.nanoTime() < beforeBatchTime + sleepPeriod ) {
             }
         }
+        System.out.println("Total events pushed: " + totalEvents);
         internalThreadCompleted = true;
     }
 
