@@ -47,6 +47,11 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
         int size = internalBuffer.size() - 1;
         System.out.println("SIZE is " + size);
 
+        //create loglines before loop input loop for optimization
+
+        ArrayList<LogLine> logLineBuffer = new ArrayList<>();
+        populateLoglines(logLineBuffer, internalBuffer);
+
         long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - startTime <= 30000) {}
 
@@ -67,8 +72,8 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
             int endIdx = internalBufferIdx + batchSize;
 
             for (int i = internalBufferIdx ; i < endIdx; i++) {
-                LogLine logData = new LogLine(internalBuffer.get(i));
-                internalQueue.add(new EntryWithTimeStamp(i + internalBufferIdx, logData, inputTimestamp,internalQueuSize));
+                //LogLine logData = new LogLine(internalBuffer.get(i));
+                internalQueue.add(new EntryWithTimeStamp(i + internalBufferIdx, logLineBuffer.get(i), inputTimestamp,internalQueuSize));
                 inputTimestamp++; //adding 1 for ordering (part of optimization)
                 totalEvents++;
             }
@@ -97,6 +102,13 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
             if (!internalQueue.isEmpty()) {
                 ctx.collect(internalQueue.poll());
             }
+        }
+    }
+
+    private void populateLoglines(ArrayList<LogLine> logLineBuffer,ArrayList<String> internalBuffer){
+        for (int i = 0; i < internalBuffer.size(); i++) {
+            LogLine logData = new LogLine(internalBuffer.get(i));
+            logLineBuffer.add(logData);
         }
     }
 
