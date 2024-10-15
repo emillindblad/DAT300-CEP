@@ -49,33 +49,29 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
 
         long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - startTime <= 30000) {}
+
         int internalBufferIdx = 0;
 
         while (System.currentTimeMillis() - startTime <= duration) {
             long beforeBatchTime = System.nanoTime();
-            if (internalBufferIdx >= size) {
+            if (internalBufferIdx + batchSize >= size) {
                 internalBufferIdx = 0;
-                System.out.println("Reset internalBufferIdx to " + internalBufferIdx);
+                //System.out.println("Reset internalBufferIdx to " + internalBufferIdx);
             }
-            System.out.println("Starting for-loop with i = " + internalBufferIdx);
+            //System.out.println("Starting for-loop with i = " + internalBufferIdx);
 
-            for (int i = internalBufferIdx ; i < internalBufferIdx + batchSize; i++) {
-                System.out.println(i);
-
-                if (i == size) {
-                    break;
-                }
-
+            //moved here for optimization, will reduce accuracy but should be good enough
+            int internalQueuSize = internalQueue.size();
+            long inputTimestamp = System.nanoTime(); //syscall == expensive in time
+            int endIdx = internalBufferIdx + batchSize;
+            for (int i = internalBufferIdx ; i < endIdx; i++) {
                 LogLine logData = new LogLine(internalBuffer.get(i));
-
-                long inputTimestamp = System.nanoTime();
-
-                internalQueue.add(new EntryWithTimeStamp(i + internalBufferIdx, logData, inputTimestamp, internalQueue.size()));
-
+                internalQueue.add(new EntryWithTimeStamp(i + internalBufferIdx, logData, inputTimestamp,internalQueuSize));
+                inputTimestamp++; //adding 1 for ordering (part of optimization)
             }
             internalBufferIdx = internalBufferIdx+batchSize;
-            System.out.println("Batch completed");
-            System.out.println("InternalBufferIdx is " + internalBufferIdx);
+            //System.out.println("Batch completed");
+            //System.out.println("InternalBufferIdx is " + internalBufferIdx);
             while (System.nanoTime() < beforeBatchTime + sleepPeriod ) {
             }
         }

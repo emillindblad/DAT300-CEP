@@ -33,18 +33,17 @@ public class DataStreamJob {
 
     public static void main(String[] args) throws Exception {
 
-        int batchSize = 300;
+        int batchSize = 100;
         long sleepPeriod = 1000000; // 1000000 Nanoseconds = 1 ms
         int parallelismLevel = 2;
         int bufferLimit = 1024; // For example, 1024 KB (1 MB)
 
-
-        Configuration configuration = new Configuration();
+        //Configuration configuration = new Configuration();
         // Set the buffer size (convert KB to bytes)
-        configuration.setLong("taskmanager.memory.network.size", bufferLimit * 1024); // Network buffer size in bytes
-        configuration.setLong("taskmanager.memory.task.size", bufferLimit * 1024);
+        //configuration.setLong("taskmanager.memory.network.size", bufferLimit * 1024); // Network buffer size in bytes
+        //configuration.setLong("taskmanager.memory.task.size", bufferLimit * 1024);
 
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(parallelismLevel);
 
         DataStream<EntryWithTimeStamp> stream = env.addSource(new DataIngestionSource(
@@ -82,7 +81,7 @@ public class DataStreamJob {
                         }
                         return false;
                     }
-                }).within(Duration.ofSeconds(2));
+                }).within(Duration.ofSeconds(1));
 
         PatternStream<EntryWithTimeStamp> patternStream = CEP.pattern(stream, pattern);
 
@@ -127,7 +126,7 @@ public class DataStreamJob {
         }
         if(timestamp < lastTimestamp) {
             currentLoopTimestamp = lastScaled; // Set the first timestamp
-            System.out.println("New base:" + currentLoopTimestamp);
+            //System.out.println("New base:" + currentLoopTimestamp);
         }
 
         lastTimestamp = timestamp;

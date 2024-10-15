@@ -95,7 +95,7 @@ func calcProcessedObjects(x, y int) int {
         fmt.Println("The result is negative:", result)
 		fmt.Printf("ID current: %d\n", x)
 		fmt.Printf("ID last: %d\n", y)
-		return 0
+		return x //the number of event since IDs were reset
     }
 
     return result // Return the calculated value

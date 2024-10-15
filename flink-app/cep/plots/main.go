@@ -47,8 +47,8 @@ func loadCsvFromDir(path string) [][]string {
 	}
 	
 	sort.Slice(records, func(i, j int) bool {
-		num1, err1 := strconv.Atoi(records[i][0])
-		num2, err2 := strconv.Atoi(records[j][0])
+		num1, err1 := strconv.Atoi(records[i][1])
+		num2, err2 := strconv.Atoi(records[j][1])
 		if err1 != nil || err2 != nil {
 			log.Fatal("Failed to convert to integer:", err1, err2)
 		}

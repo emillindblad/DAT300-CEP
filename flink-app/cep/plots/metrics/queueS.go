@@ -30,13 +30,13 @@ func PlotJobQ(records [][]string) *charts.Line {
 		}
 
 		//entryID := i
-		jobEndTime := ParseCsvStrToInt(record[2])
+		jobStartTime := ParseCsvStrToInt(record[1])
 		queueSize := ParseCsvStrToInt(record[3])
 
 		// Calculate job duration in nanoseconds and convert to milliseconds seconds
 		// duration := float64(jobEndTime-jobStartTime)
 
-		interval := int(jobEndTime) / denominator
+		interval := int(jobStartTime) / denominator
 		timeEntry := getOrCreateQ(buckets, interval)
 
 		// Increment events count first
