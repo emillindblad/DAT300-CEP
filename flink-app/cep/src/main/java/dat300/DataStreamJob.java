@@ -45,15 +45,15 @@ public class DataStreamJob {
         configuration.setLong("taskmanager.memory.task.size", bufferLimit * 1024);
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(configuration);
-        env.setParallelism(1);
+        env.setParallelism(parallelismLevel);
 
         DataStream<EntryWithTimeStamp> stream = env.addSource(new DataIngestionSource(
                 "athena-sshd-processed.log",
                 batchSize,
                 sleepPeriod,
-                1000 * 60)
+                1000 * 100)
         ).assignTimestampsAndWatermarks(WatermarkStrategy.<EntryWithTimeStamp>forBoundedOutOfOrderness(Duration.ofSeconds(10))
-                .withTimestampAssigner((entry, timestamp) -> scaleTimestamp(entry.logLine.getUnixTimeStamp())));
+                .withTimestampAssigner((entry, timestamp) -> scaleTimestamp(entry.logLine.getUnixTimeStamp()))); //source should not be parallel
 
         Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
                 .where(new IterativeCondition<EntryWithTimeStamp>() {
@@ -69,6 +69,9 @@ public class DataStreamJob {
                 }).followedBy("RepeatedIP").where(new IterativeCondition<EntryWithTimeStamp>() {
                     @Override
                     public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
+                        if (!currentEvent.getLogLine().message.contains("Invalid user")) {
+                            return false;
+                        }
                         for (EntryWithTimeStamp previousEvent : ctx.getEventsForPattern("InvalidUser")) {
                            if (currentEvent.getLogLine().message.split(" ")[4].equals(previousEvent.getLogLine().message.split(" ")[4])) {
                                //System.out.println(currentEvent.getLogLine().timeStamp + " " + currentEvent.getLogLine().message);
