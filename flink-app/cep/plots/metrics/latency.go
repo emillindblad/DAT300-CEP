@@ -132,7 +132,7 @@ func getOrCreate(buckets map[int]TimeEntry, key int) TimeEntry {
     if entry, exists := buckets[key]; exists {
         return entry // Return the existing entry
     }
-	fmt.Printf("new bucket: %d\n", key)
+	//fmt.Printf("new bucket: %d\n", key)
     // If the key does not exist, create a new TimeEntry
     newEntry := TimeEntry{
         // Initialize fields as necessary

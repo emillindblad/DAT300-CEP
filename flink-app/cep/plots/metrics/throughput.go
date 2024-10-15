@@ -92,9 +92,9 @@ func calcProcessedObjects(x, y int) int {
     result := x - y // Calculate the difference
 
     if result < 0 {
-        fmt.Println("The result is negative:", result)
-		fmt.Printf("ID current: %d\n", x)
-		fmt.Printf("ID last: %d\n", y)
+        //fmt.Println("The result is negative:", result)
+		//fmt.Printf("ID current: %d\n", x)
+		//fmt.Printf("ID last: %d\n", y)
 		return x //the number of event since IDs were reset
     }
 
