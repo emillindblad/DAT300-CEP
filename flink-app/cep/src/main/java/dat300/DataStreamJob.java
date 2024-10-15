@@ -33,9 +33,9 @@ public class DataStreamJob {
 
     public static void main(String[] args) throws Exception {
 
-        int batchSize = 100;
+        int batchSize = 1000;
         long sleepPeriod = 1000000; // 1000000 Nanoseconds = 1 ms
-        int parallelismLevel = 2;
+        int parallelismLevel = 4;
         int bufferLimit = 1024; // For example, 1024 KB (1 MB)
 
         //Configuration configuration = new Configuration();
@@ -81,7 +81,7 @@ public class DataStreamJob {
                         }
                         return false;
                     }
-                }).within(Duration.ofSeconds(1));
+                }).within(Duration.ofSeconds(2));
 
         PatternStream<EntryWithTimeStamp> patternStream = CEP.pattern(stream, pattern);
 
