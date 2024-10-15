@@ -74,7 +74,9 @@ func PlotThroughPut(records [][]string) *charts.Line {
 			charts.WithLineChartOpts(opts.LineChart{}),
 			// charts.WithLabelOpts(),
 		)
-
+	
+	averageThroughput := calculateAverage(buckets)	
+	fmt.Printf("Average Throughput: %.2f events\n", averageThroughput)
 	return line
 }
 
@@ -97,4 +99,19 @@ func calcProcessedObjects(x, y int) int {
     }
 
     return result // Return the calculated value
+}
+
+func calculateAverage(buckets map[int]int) float64 {
+	total := 0
+	count := 0
+
+	for _, value := range buckets {
+		total += value
+		count++
+	}
+
+	if count == 0 {
+		return 0
+	}
+	return float64(total) / float64(count)
 }
