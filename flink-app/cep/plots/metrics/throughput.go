@@ -17,7 +17,7 @@ func PlotThroughPut(records [][]string) *charts.Line {
 	endTime := ParseCsvStrToInt(records[len(records)-1][2])
 	fmt.Println("startTime", startTime)
 	fmt.Println("endTime", endTime)
-	fmt.Println("total", (endTime-startTime)/int64(denominator))
+	fmt.Println("total s", (endTime-startTime)/int64(denominator))
 
 	buckets := make(map[int]int)
 	for _, job := range records {

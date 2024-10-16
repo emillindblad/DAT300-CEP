@@ -83,7 +83,7 @@ func PlotJobLatency(records [][]string) *charts.Line {
 	fmt.Println("latency data")
 	fmt.Println("startTime", keys[0])
 	fmt.Println("endTime", keys[len(keys)-1])
-	fmt.Println("total ms", (keys[len(keys)-1]- keys[0]))
+	fmt.Println("total s", (keys[len(keys)-1]- keys[0]))
 
 	// Extract values in sorted order
 	for _, key := range keys {

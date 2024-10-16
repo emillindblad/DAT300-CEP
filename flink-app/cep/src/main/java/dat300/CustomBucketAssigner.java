@@ -15,14 +15,16 @@ public class CustomBucketAssigner implements BucketAssigner<EntryWithTimeStamp, 
     private final int parallelismLevel;
     private final String dateTime;
     private final int bufferLimit;
+    private final String prefix;
 
 
-    public CustomBucketAssigner(int batchSize, long sleepPeriod, int parallelismLevel, int bufferLimit, String dateTime) {
+    public CustomBucketAssigner(String prefix, int batchSize, long sleepPeriod, int parallelismLevel, int bufferLimit, String dateTime) {
         this.batchSize = batchSize;
         this.sleepPeriod = sleepPeriod;
         this.parallelismLevel = parallelismLevel;
         this.dateTime = dateTime;
         this.bufferLimit = bufferLimit;
+        this.prefix = prefix;
     }
     @Override
     public String getBucketId(EntryWithTimeStamp element, Context context) {

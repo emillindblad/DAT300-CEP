@@ -104,10 +104,10 @@ public class DataStreamJob {
                         return entry;
                     }
                 });
-
+        String prefix = "SimpleTest";
         FileSink<EntryWithTimeStamp> outSink = FileSink
                 .forRowFormat( new Path("./outSink"), new SimpleStringEncoder<EntryWithTimeStamp>("UTF-8"))
-                .withBucketAssigner(new CustomBucketAssigner(batchSize, sleepPeriod, parallelismLevel, bufferLimit, GetDateTime()))
+                .withBucketAssigner(new CustomBucketAssigner(prefix,batchSize, sleepPeriod, parallelismLevel, bufferLimit, GetDateTime()))
                 .withRollingPolicy(
                         OnCheckpointRollingPolicy.build()
                 ).build();
