@@ -100,7 +100,7 @@ func PlotJobLatency(records [][]string) *charts.Line {
 	line.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{
 			Title:    "AVG Latency",
-			Subtitle: "Latency (ms)",
+			//Subtitle: "Latency (ms)",
 		}),
 		charts.WithXAxisOpts(opts.XAxis{
 			Name: "Time (s)",

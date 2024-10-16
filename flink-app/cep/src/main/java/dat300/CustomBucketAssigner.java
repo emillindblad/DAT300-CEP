@@ -28,7 +28,7 @@ public class CustomBucketAssigner implements BucketAssigner<EntryWithTimeStamp, 
     }
     @Override
     public String getBucketId(EntryWithTimeStamp element, Context context) {
-        return dateTime + "-b" + batchSize + "-s" + sleepPeriod + "-p" + parallelismLevel + "-bL" + bufferLimit;
+        return prefix+"-"+dateTime + "-b" + batchSize + "-s" + sleepPeriod + "-p" + parallelismLevel + "-bL" + bufferLimit;
     }
 
     @Override

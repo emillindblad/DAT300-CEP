@@ -35,7 +35,7 @@ public class DataStreamJob {
 
         int batchSize = 1000;
         long sleepPeriod = 1000000; // 1000000 Nanoseconds = 1 ms
-        int parallelismLevel = 4;
+        int parallelismLevel = 2;
         int bufferLimit = 1024; // For example, 1024 KB (1 MB)
 
         //Configuration configuration = new Configuration();
@@ -54,7 +54,7 @@ public class DataStreamJob {
         ).assignTimestampsAndWatermarks(WatermarkStrategy.<EntryWithTimeStamp>forBoundedOutOfOrderness(Duration.ofSeconds(10))
                 .withTimestampAssigner((entry, timestamp) -> scaleTimestamp(entry.logLine.getUnixTimeStamp()))); //source should not be parallel
 
-        Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
+        /*Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
                 .where(new IterativeCondition<EntryWithTimeStamp>() {
                     @Override
                     public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
@@ -81,7 +81,20 @@ public class DataStreamJob {
                         }
                         return false;
                     }
-                }).within(Duration.ofSeconds(2));
+                }).within(Duration.ofSeconds(2)); */
+
+        Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
+                .where(new IterativeCondition<EntryWithTimeStamp>() {
+                    @Override
+                    public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
+                        // Check if the message contains "Invalid user"
+                        if (currentEvent.getLogLine().message.contains("Invalid user")) {
+                            // You can log the matched event or perform additional actions here if needed
+                            return true; // This event matches the "InvalidUser" pattern
+                        }
+                        return false; // This event does not match
+                    }
+                });
 
         PatternStream<EntryWithTimeStamp> patternStream = CEP.pattern(stream, pattern);
 
@@ -89,7 +102,7 @@ public class DataStreamJob {
             new PatternSelectFunction<EntryWithTimeStamp, EntryWithTimeStamp>() {
                 @Override
                 public EntryWithTimeStamp select(Map<String, List<EntryWithTimeStamp>> pattern) throws Exception {
-                   return pattern.get("RepeatedIP").get(0);
+                   return pattern.get("InvalidUser").get(0);
                 }
             }
         );
