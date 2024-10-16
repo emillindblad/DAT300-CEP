@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
+	"strings"
 
 	//"math/rand"
 	"dat300/metrics"
@@ -11,7 +12,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
-	"time"
 
 	"github.com/go-echarts/go-echarts/v2/components"
 )
@@ -146,8 +146,8 @@ func main() {
 
 	// Render the charts to an HTML file
 	// suffix := base64.StdEncoding.EncodeToString([]byte(randNum))
-    t := time.Now()
-	fileName := fmt.Sprintf("flink-charts-%s.html", t.Format("20060102150405"))
+    //t := time.Now()
+	fileName := fmt.Sprintf("%s.html", getFilename(dirPath))
 
 	f, err := os.Create(fileName)
 	if err != nil {
@@ -157,4 +157,14 @@ func main() {
 
 	page.Render(f)
 	fmt.Printf("Charts has been generated to '%s'\n", fileName)
+}
+
+func getFilename(path string) string {
+	
+	lastIndex := strings.LastIndexAny(path, "/\\")
+
+	if lastIndex == -1 {
+		return path
+	}
+	return path[lastIndex+1:]
 }
