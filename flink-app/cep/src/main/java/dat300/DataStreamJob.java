@@ -19,6 +19,7 @@ import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -33,17 +34,29 @@ public class DataStreamJob {
 
 
     public static void main(String[] args) throws Exception {
+        int batchSize;
+        int sleepPeriod;
+        int parallelismLevel;
+        int bufferLimit;
 
-        int batchSize = 1000;
-        long sleepPeriod = 1000000; // 1000000 Nanoseconds = 1 ms
-        int parallelismLevel = 4;
-        int bufferLimit = 1024; // For example, 1024 KB (1 MB)
+        if (args.length != 0) {
+            batchSize = Integer.parseInt(args[0]);
+            sleepPeriod = Integer.parseInt(args[1]);
+            parallelismLevel = Integer.parseInt(args[2]);
+            bufferLimit = Integer.parseInt(args[3]);
+        } else {
+            batchSize = 1000;
+            sleepPeriod = 1000000; // 1000000 Nanoseconds = 1 ms
+            parallelismLevel = 4;
+            bufferLimit = 1024; // For example, 1024 KB (1 MB)
+        }
 
         //Configuration configuration = new Configuration();
         // Set the buffer size (convert KB to bytes)
         //configuration.setLong("taskmanager.memory.network.size", bufferLimit * 1024); // Network buffer size in bytes
         //configuration.setLong("taskmanager.memory.task.size", bufferLimit * 1024);
 
+        System.out.printf("Configuration: Batchsize: %d items, SleepPeriod: %d ns ParallelismLevel: %d threads, BufferLimit %d kb\n",batchSize,sleepPeriod,parallelismLevel,bufferLimit);
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(parallelismLevel);
 
@@ -56,8 +69,9 @@ public class DataStreamJob {
                 .withTimestampAssigner((entry, timestamp) -> scaleTimestamp(entry.logLine.getUnixTimeStamp()))); //source should not be parallel
 
         // Good thing to mention in the report
-        KeyedStream<EntryWithTimeStamp,?> keyedStream = stream.keyBy(value -> value.logLine.timeStamp.getDayOfMonth());
+        KeyedStream<EntryWithTimeStamp,String> keyedStream = stream.keyBy(value -> value.logLine.getIp());
 
+        /*
         Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
                 .where(new IterativeCondition<EntryWithTimeStamp>() {
                     @Override
@@ -76,18 +90,19 @@ public class DataStreamJob {
                             return false;
                         }
                         for (EntryWithTimeStamp previousEvent : ctx.getEventsForPattern("InvalidUser")) {
-                           if (currentEvent.getLogLine().message.split(" ")[4].equals(previousEvent.getLogLine().message.split(" ")[4])) {
-                               //System.out.println(currentEvent.getLogLine().timeStamp + " " + currentEvent.getLogLine().message);
-                               //System.out.println(previousEvent.getLogLine().timeStamp + " " + previousEvent.getLogLine().message);
-                               //System.out.println("-");
+                            if (currentEvent.getLogLine().message.split(" ")[4].equals(previousEvent.getLogLine().message.split(" ")[4])) {
+                                //System.out.println(currentEvent.getLogLine().timeStamp + " " + currentEvent.getLogLine().message);
+                                //System.out.println(previousEvent.getLogLine().timeStamp + " " + previousEvent.getLogLine().message);
+                                //System.out.println("-");
                                 return true;
                             }
                         }
                         return false;
                     }
-                }).within(Duration.ofSeconds(2));
+                }).within(Duration.ofMinutes(2));
+         */
 
-        /*
+
         Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
                 .where(new IterativeCondition<EntryWithTimeStamp>() {
                     @Override
@@ -100,21 +115,20 @@ public class DataStreamJob {
                         return false; // This event does not match
                     }
                 });
-         */
 
         PatternStream<EntryWithTimeStamp> patternStream = CEP.pattern(keyedStream, pattern);
 
         DataStream<EntryWithTimeStamp> patternMatches = patternStream.select(
-            new PatternSelectFunction<EntryWithTimeStamp, EntryWithTimeStamp>() {
-                @Override
-                public EntryWithTimeStamp select(Map<String, List<EntryWithTimeStamp>> pattern) throws Exception {
-                   return pattern.get("InvalidUser").get(0);
+                new PatternSelectFunction<EntryWithTimeStamp, EntryWithTimeStamp>() {
+                    @Override
+                    public EntryWithTimeStamp select(Map<String, List<EntryWithTimeStamp>> pattern) throws Exception {
+                        return pattern.get("InvalidUser").get(0);
+                    }
                 }
-            }
         );
 
         DataStream<EntryWithTimeStamp> exitStamp = patternMatches
-        //DataStream<EntryWithTimeStamp> exitStamp = stream
+                //DataStream<EntryWithTimeStamp> exitStamp = stream
                 .map(new MapFunction<EntryWithTimeStamp, EntryWithTimeStamp>() {
                     @Override
                     public EntryWithTimeStamp map(EntryWithTimeStamp entry) throws Exception {
@@ -123,10 +137,12 @@ public class DataStreamJob {
                         return entry;
                     }
                 });
+
         String prefix = "SimpleTest";
+        CustomBucketAssigner bucket = new CustomBucketAssigner(prefix,batchSize, sleepPeriod, parallelismLevel, bufferLimit, GetDateTime());
         FileSink<EntryWithTimeStamp> outSink = FileSink
-                .forRowFormat( new Path("./outSink"), new SimpleStringEncoder<EntryWithTimeStamp>("UTF-8"))
-                .withBucketAssigner(new CustomBucketAssigner(prefix,batchSize, sleepPeriod, parallelismLevel, bufferLimit, GetDateTime()))
+                .forRowFormat(new Path("./outSink"), new SimpleStringEncoder<EntryWithTimeStamp>("UTF-8"))
+                .withBucketAssigner(bucket)
                 .withRollingPolicy(
                         OnCheckpointRollingPolicy.build()
                 ).build();
@@ -134,6 +150,7 @@ public class DataStreamJob {
         exitStamp.sinkTo(outSink);
 
         env.execute("DataStreamJob");
+        System.out.println(bucket);
     }
     public static Long scaleTimestamp(Long timestamp) {
         // Initialize the first timestamp on the first call

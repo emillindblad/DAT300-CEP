@@ -94,19 +94,20 @@ func PlotJobLatency(records [][]string) *charts.Line {
 		yAxis = append(yAxis, opts.LineData{Value: entry.avgLatency})
 	}
 
+	averageLatency := calculateAverageLatency(buckets)
 	line := charts.NewLine()
 
 	// Set the chart title and axis labels
 	line.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{
-			Title: "AVG Latency",
-			// Subtitle: "Latency (ms)",
+			Title:    "AVG Latency",
+			Subtitle: fmt.Sprintf("Latency (ms) Avg %f ms\n", averageLatency),
 		}),
 		charts.WithXAxisOpts(opts.XAxis{
 			Name: "Time (s)",
 		}),
 		charts.WithYAxisOpts(opts.YAxis{
-			Name:      "Latency (ms)", // Primary Y-axis
+			Name:      "",
 			Position:  "left",
 			AxisLine:  &opts.AxisLine{Show: opts.Bool(true)}, // Show axis line
 			SplitLine: &opts.SplitLine{Show: opts.Bool(true)},
@@ -123,8 +124,7 @@ func PlotJobLatency(records [][]string) *charts.Line {
 	line.SetXAxis(xAxis).
 		AddSeries("AVG latency (MS)", yAxis)
 
-	averageThroughput := calculateAverageLatency(buckets)
-	fmt.Printf("Average Latency: %.2f ms\n", averageThroughput)
+	fmt.Printf("Average Latency: %.2f ms\n", averageLatency)
 	return line
 }
 

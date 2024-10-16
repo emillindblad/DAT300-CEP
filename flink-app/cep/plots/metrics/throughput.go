@@ -48,11 +48,20 @@ func PlotThroughPut(records [][]string) *charts.Line {
 	sort.Ints(keys)
 	// fmt.Println(keys)
 
+	averageThroughput := calculateAverage(buckets)
+
 	line := charts.NewLine()
 	line.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{Title: "System Throughput Over Time"}),
-		charts.WithXAxisOpts(opts.XAxis{Name: "Time (s)"}),
-		charts.WithYAxisOpts(opts.YAxis{Name: "Throughput (Events)"}),
+		charts.WithTitleOpts(opts.Title{
+			Title:    "System Throughput Over Time",
+			Subtitle: fmt.Sprintf("Throughput (Events) Avg: %f events", averageThroughput),
+		}),
+		charts.WithXAxisOpts(opts.XAxis{
+			Name: "Time (s)",
+		}),
+		charts.WithYAxisOpts(opts.YAxis{
+			Name: "",
+		}),
 		charts.WithDataZoomOpts(opts.DataZoom{
 			Type:       "slider",
 			XAxisIndex: []int{0},
@@ -75,7 +84,6 @@ func PlotThroughPut(records [][]string) *charts.Line {
 			// charts.WithLabelOpts(),
 		)
 
-	averageThroughput := calculateAverage(buckets)
 	fmt.Printf("Average Throughput: %.2f events\n", averageThroughput)
 	return line
 }

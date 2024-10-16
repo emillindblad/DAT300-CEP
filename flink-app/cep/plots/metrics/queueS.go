@@ -99,7 +99,7 @@ func PlotJobQ(records [][]string) *charts.Line {
 			Name: "Time (s)",
 		}),
 		charts.WithYAxisOpts(opts.YAxis{
-			Name:      "Queue (events)", // Primary Y-axis
+			Name:      "", // Primary Y-axis
 			Position:  "left",
 			AxisLine:  &opts.AxisLine{Show: opts.Bool(true)}, // Show axis line
 			SplitLine: &opts.SplitLine{Show: opts.Bool(true)},

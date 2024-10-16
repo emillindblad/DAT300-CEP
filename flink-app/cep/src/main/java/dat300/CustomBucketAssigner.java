@@ -8,8 +8,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class CustomBucketAssigner implements BucketAssigner<EntryWithTimeStamp, String> {
-
-
     private final int batchSize;
     private final long sleepPeriod;
     private final int parallelismLevel;
@@ -34,5 +32,10 @@ public class CustomBucketAssigner implements BucketAssigner<EntryWithTimeStamp, 
     @Override
     public SimpleVersionedSerializer<String> getSerializer() {
         return SimpleVersionedStringSerializer.INSTANCE;
+    }
+
+    @Override
+    public String toString() {
+        return prefix+"-"+dateTime + "-b" + batchSize + "-s" + sleepPeriod + "-p" + parallelismLevel + "-bL" + bufferLimit;
     }
 }
