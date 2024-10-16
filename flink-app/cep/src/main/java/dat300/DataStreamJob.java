@@ -12,6 +12,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.file.sink.FileSink;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.OnCheckpointRollingPolicy;
 
@@ -35,7 +36,7 @@ public class DataStreamJob {
 
         int batchSize = 1000;
         long sleepPeriod = 1000000; // 1000000 Nanoseconds = 1 ms
-        int parallelismLevel = 2;
+        int parallelismLevel = 4;
         int bufferLimit = 1024; // For example, 1024 KB (1 MB)
 
         //Configuration configuration = new Configuration();
@@ -54,7 +55,10 @@ public class DataStreamJob {
         ).assignTimestampsAndWatermarks(WatermarkStrategy.<EntryWithTimeStamp>forBoundedOutOfOrderness(Duration.ofSeconds(10))
                 .withTimestampAssigner((entry, timestamp) -> scaleTimestamp(entry.logLine.getUnixTimeStamp()))); //source should not be parallel
 
-        /*Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
+        // Good thing to mention in the report
+        KeyedStream<EntryWithTimeStamp,?> keyedStream = stream.keyBy(value -> value.logLine.timeStamp.getDayOfMonth());
+
+        Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
                 .where(new IterativeCondition<EntryWithTimeStamp>() {
                     @Override
                     public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
@@ -81,8 +85,9 @@ public class DataStreamJob {
                         }
                         return false;
                     }
-                }).within(Duration.ofSeconds(2)); */
+                }).within(Duration.ofSeconds(2));
 
+        /*
         Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
                 .where(new IterativeCondition<EntryWithTimeStamp>() {
                     @Override
@@ -95,8 +100,9 @@ public class DataStreamJob {
                         return false; // This event does not match
                     }
                 });
+         */
 
-        PatternStream<EntryWithTimeStamp> patternStream = CEP.pattern(stream, pattern);
+        PatternStream<EntryWithTimeStamp> patternStream = CEP.pattern(keyedStream, pattern);
 
         DataStream<EntryWithTimeStamp> patternMatches = patternStream.select(
             new PatternSelectFunction<EntryWithTimeStamp, EntryWithTimeStamp>() {

@@ -1,12 +1,14 @@
 package dat300;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public class LogLine {
-    public String timeStamp;
+    public LocalDateTime timeStamp;
     public String hostName;
     public String message;
 
@@ -14,20 +16,27 @@ public class LogLine {
         String[] splitTimeMsg = rawLine.split("]: ");
         String[] splitTimeHostname = splitTimeMsg[0].split(" ");
 
-        this.timeStamp = String.format("%s %s %s",splitTimeHostname[0], splitTimeHostname[1], splitTimeHostname[2]);
+        this.timeStamp = createTimeStamp(splitTimeHostname);
         this.hostName = splitTimeHostname[3];
         this.message = splitTimeMsg[1];
     }
 
-    public long getUnixTimeStamp() {
+    public LocalDateTime getTimeStamp() {
+        return this.timeStamp;
+    }
+
+    private LocalDateTime createTimeStamp(String[] splitTimeHostname) {
 //        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd HH:mm:ss");
+        String timeStampString = String.format("%s %s %s",splitTimeHostname[0], splitTimeHostname[1], splitTimeHostname[2]);
         int currentYear = LocalDateTime.now().getYear();
         
-        String timestampWithYear = this.timeStamp + " " + currentYear;
+        String timestampWithYear = timeStampString + " " + currentYear;
         DateTimeFormatter formatterWithYear = DateTimeFormatter.ofPattern("MMM dd HH:mm:ss yyyy", Locale.ENGLISH);
-        LocalDateTime dateTime = LocalDateTime.parse(timestampWithYear, formatterWithYear);
+        return LocalDateTime.parse(timestampWithYear, formatterWithYear);
+    }
 
-        long unixTime = dateTime.toEpochSecond(ZoneOffset.UTC);
+    public long getUnixTimeStamp() {
+        long unixTime = this.timeStamp.toEpochSecond(ZoneOffset.UTC);
         return  unixTime * 1000;
     }
 
