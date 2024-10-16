@@ -11,16 +11,16 @@ import (
 // Define a struct with three int fields
 
 type TimeEntryQ struct {
-    second int
-    nrOfEvents int
+	second       int
+	nrOfEvents   int
 	avgQueueSize float64
 }
 
 func PlotJobQ(records [][]string) *charts.Line {
 	fmt.Println("Creating queue plot")
-	//var entryIDs []int
-	//var durations []opts.BarData
-	denominator := 1000000000 //ms=1000000, s =1000000000
+	// var entryIDs []int
+	// var durations []opts.BarData
+	denominator := 1000000000 // ms=1000000, s =1000000000
 	buckets := make(map[int]TimeEntryQ)
 
 	for i, record := range records {
@@ -29,7 +29,7 @@ func PlotJobQ(records [][]string) *charts.Line {
 			continue
 		}
 
-		//entryID := i
+		// entryID := i
 		jobStartTime := ParseCsvStrToInt(record[1])
 		queueSize := ParseCsvStrToInt(record[3])
 
@@ -53,19 +53,18 @@ func PlotJobQ(records [][]string) *charts.Line {
 	}
 
 	// Normalization Step
-    var minS, maxS int
-    for k := range buckets {
-        if minS == 0 || k < minS {
-            minS = k
-        }
-        if k > maxS {
-            maxS = k
-        }
-    }
+	var minS, maxS int
+	for k := range buckets {
+		if minS == 0 || k < minS {
+			minS = k
+		}
+		if k > maxS {
+			maxS = k
+		}
+	}
 
-
-    // Set x to the largest value found minus the starting value
-    //x := maxMS - minMS
+	// Set x to the largest value found minus the starting value
+	// x := maxMS - minMS
 	var keys []int
 	for k := range buckets {
 		keys = append(keys, k)
@@ -74,10 +73,10 @@ func PlotJobQ(records [][]string) *charts.Line {
 
 	var xAxis []int
 	var yAxis []opts.LineData
-	fmt.Println("queu data")
-	fmt.Println("startTime", keys[0])
-	fmt.Println("endTime", keys[len(keys)-1])
-	fmt.Println("total s", (keys[len(keys)-1]- keys[0]))
+	// fmt.Println("queu data")
+	// fmt.Println("startTime", keys[0])
+	// fmt.Println("endTime", keys[len(keys)-1])
+	// fmt.Println("total s", (keys[len(keys)-1] - keys[0]))
 
 	// Extract values in sorted order
 	for _, key := range keys {
@@ -100,9 +99,9 @@ func PlotJobQ(records [][]string) *charts.Line {
 			Name: "Time (s)",
 		}),
 		charts.WithYAxisOpts(opts.YAxis{
-			Name: "Queue (events)", // Primary Y-axis
-			Position: "left",
-			AxisLine: &opts.AxisLine{Show: opts.Bool(true)}, // Show axis line
+			Name:      "Queue (events)", // Primary Y-axis
+			Position:  "left",
+			AxisLine:  &opts.AxisLine{Show: opts.Bool(true)}, // Show axis line
 			SplitLine: &opts.SplitLine{Show: opts.Bool(true)},
 		}),
 		charts.WithDataZoomOpts(opts.DataZoom{
@@ -120,18 +119,18 @@ func PlotJobQ(records [][]string) *charts.Line {
 }
 
 func getOrCreateQ(buckets map[int]TimeEntryQ, key int) TimeEntryQ {
-    // Check if the key exists in the map
-    if entry, exists := buckets[key]; exists {
-        return entry // Return the existing entry
-    }
+	// Check if the key exists in the map
+	if entry, exists := buckets[key]; exists {
+		return entry // Return the existing entry
+	}
 
-    // If the key does not exist, create a new TimeEntry
-    newEntry := TimeEntryQ{
-        // Initialize fields as necessary
-		nrOfEvents: 0,
+	// If the key does not exist, create a new TimeEntry
+	newEntry := TimeEntryQ{
+		// Initialize fields as necessary
+		nrOfEvents:   0,
 		avgQueueSize: 0,
-    }
-    buckets[key] = newEntry // Add the new entry to the map
+	}
+	buckets[key] = newEntry // Add the new entry to the map
 
-    return newEntry
+	return newEntry
 }

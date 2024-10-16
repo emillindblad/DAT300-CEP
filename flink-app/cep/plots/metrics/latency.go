@@ -11,16 +11,16 @@ import (
 
 // Define a struct with three int fields
 type TimeEntry struct {
-    milliSecond int
-    avgLatency float64
-    nrOfEvents int
+	milliSecond int
+	avgLatency  float64
+	nrOfEvents  int
 }
 
 func PlotJobLatency(records [][]string) *charts.Line {
 	fmt.Println("Creating latency plot")
-	//var entryIDs []int
-	//var durations []opts.BarData
-	denominator := 1000000000 //ms=1000000, s =1000000000
+	// var entryIDs []int
+	// var durations []opts.BarData
+	denominator := 1000000000 // ms=1000000, s =1000000000
 	buckets := make(map[int]TimeEntry)
 
 	for i, record := range records {
@@ -29,19 +29,19 @@ func PlotJobLatency(records [][]string) *charts.Line {
 			continue
 		}
 
-		//entryID := i
+		// entryID := i
 
 		jobStartTime := ParseCsvStrToInt(record[1])
 		jobEndTime := ParseCsvStrToInt(record[2])
-		//println(jobStartTime)
-		//println(jobEndTime)
+		// println(jobStartTime)
+		// println(jobEndTime)
 
 		// Calculate job duration in nanoseconds and convert to milliseconds seconds
 		duration := float64(jobEndTime-jobStartTime) * math.Pow(10, -6)
 		// duration := float64(jobEndTime-jobStartTime)
 
 		interval := int(jobEndTime) / denominator
-		//fmt.Printf("interval: %d\n", interval)
+		// fmt.Printf("interval: %d\n", interval)
 		timeEntry := getOrCreate(buckets, interval)
 
 		// Increment events count first
@@ -58,20 +58,20 @@ func PlotJobLatency(records [][]string) *charts.Line {
 	}
 
 	// Normalization Step
-    var minMS, maxMS int
-    for k := range buckets {
-        if minMS == 0 || k < minMS {
-            minMS = k
-        }
-        if k > maxMS {
-            maxMS = k
-        }
-    }
+	var minMS, maxMS int
+	for k := range buckets {
+		if minMS == 0 || k < minMS {
+			minMS = k
+		}
+		if k > maxMS {
+			maxMS = k
+		}
+	}
 
 	// Normalization Step
 
-    // Set x to the largest value found minus the starting value
-    //x := maxMS - minMS
+	// Set x to the largest value found minus the starting value
+	// x := maxMS - minMS
 	var keys []int
 	for k := range buckets {
 		keys = append(keys, k)
@@ -80,10 +80,10 @@ func PlotJobLatency(records [][]string) *charts.Line {
 
 	var xAxis []int
 	var yAxis []opts.LineData
-	fmt.Println("latency data")
-	fmt.Println("startTime", keys[0])
-	fmt.Println("endTime", keys[len(keys)-1])
-	fmt.Println("total s", (keys[len(keys)-1]- keys[0]))
+	// fmt.Println("latency data")
+	// fmt.Println("startTime", keys[0])
+	// fmt.Println("endTime", keys[len(keys)-1])
+	// fmt.Println("total s", (keys[len(keys)-1]- keys[0]))
 
 	// Extract values in sorted order
 	for _, key := range keys {
@@ -99,16 +99,16 @@ func PlotJobLatency(records [][]string) *charts.Line {
 	// Set the chart title and axis labels
 	line.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{
-			Title:    "AVG Latency",
-			//Subtitle: "Latency (ms)",
+			Title: "AVG Latency",
+			// Subtitle: "Latency (ms)",
 		}),
 		charts.WithXAxisOpts(opts.XAxis{
 			Name: "Time (s)",
 		}),
 		charts.WithYAxisOpts(opts.YAxis{
-			Name: "Latency (ms)", // Primary Y-axis
-			Position: "left",
-			AxisLine: &opts.AxisLine{Show: opts.Bool(true)}, // Show axis line
+			Name:      "Latency (ms)", // Primary Y-axis
+			Position:  "left",
+			AxisLine:  &opts.AxisLine{Show: opts.Bool(true)}, // Show axis line
 			SplitLine: &opts.SplitLine{Show: opts.Bool(true)},
 		}),
 		charts.WithDataZoomOpts(opts.DataZoom{
@@ -122,28 +122,27 @@ func PlotJobLatency(records [][]string) *charts.Line {
 	// Set the X-axis (entryId) and Y-axis (durations)
 	line.SetXAxis(xAxis).
 		AddSeries("AVG latency (MS)", yAxis)
-		
 
-	averageThroughput := calculateAverageLatency(buckets)	
+	averageThroughput := calculateAverageLatency(buckets)
 	fmt.Printf("Average Latency: %.2f ms\n", averageThroughput)
 	return line
 }
 
 func getOrCreate(buckets map[int]TimeEntry, key int) TimeEntry {
-    // Check if the key exists in the map
-    if entry, exists := buckets[key]; exists {
-        return entry // Return the existing entry
-    }
-	//fmt.Printf("new bucket: %d\n", key)
-    // If the key does not exist, create a new TimeEntry
-    newEntry := TimeEntry{
-        // Initialize fields as necessary
+	// Check if the key exists in the map
+	if entry, exists := buckets[key]; exists {
+		return entry // Return the existing entry
+	}
+	// fmt.Printf("new bucket: %d\n", key)
+	// If the key does not exist, create a new TimeEntry
+	newEntry := TimeEntry{
+		// Initialize fields as necessary
 		avgLatency: 0,
 		nrOfEvents: 0,
-    }
-    buckets[key] = newEntry // Add the new entry to the map
+	}
+	buckets[key] = newEntry // Add the new entry to the map
 
-    return newEntry
+	return newEntry
 }
 
 func calculateAverageLatency(buckets map[int]TimeEntry) float64 {

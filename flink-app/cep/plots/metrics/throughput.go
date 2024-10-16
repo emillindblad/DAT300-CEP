@@ -12,18 +12,18 @@ func PlotThroughPut(records [][]string) *charts.Line {
 	lastId := 0
 	fmt.Println("Creating throughput plot")
 
-	denominator := 1000000000 //ms=1000000, s =1000000000
-	startTime := ParseCsvStrToInt(records[1][1])
-	endTime := ParseCsvStrToInt(records[len(records)-1][2])
-	fmt.Println("startTime", startTime)
-	fmt.Println("endTime", endTime)
-	fmt.Println("total s", (endTime-startTime)/int64(denominator))
+	denominator := 1000000000 // ms=1000000, s =1000000000
+	// startTime := ParseCsvStrToInt(records[1][1])
+	// endTime := ParseCsvStrToInt(records[len(records)-1][2])
+	// fmt.Println("startTime", startTime)
+	// fmt.Println("endTime", endTime)
+	// fmt.Println("total s", (endTime-startTime)/int64(denominator))
 
 	buckets := make(map[int]int)
 	for _, job := range records {
 		currentId := int(ParseCsvStrToInt(job[0]))
 		processedEvents := calcProcessedObjects(currentId, lastId)
-		lastId = currentId;
+		lastId = currentId
 		interval := int(ParseCsvStrToInt(job[2])) / denominator
 		buckets[interval] += processedEvents
 	}
@@ -74,8 +74,8 @@ func PlotThroughPut(records [][]string) *charts.Line {
 			charts.WithLineChartOpts(opts.LineChart{}),
 			// charts.WithLabelOpts(),
 		)
-	
-	averageThroughput := calculateAverage(buckets)	
+
+	averageThroughput := calculateAverage(buckets)
 	fmt.Printf("Average Throughput: %.2f events\n", averageThroughput)
 	return line
 }
@@ -89,16 +89,16 @@ func generateLineItems(keys []int, buckets map[int]int) []opts.LineData {
 }
 
 func calcProcessedObjects(x, y int) int {
-    result := x - y // Calculate the difference
+	result := x - y // Calculate the difference
 
-    if result < 0 {
-        //fmt.Println("The result is negative:", result)
-		//fmt.Printf("ID current: %d\n", x)
-		//fmt.Printf("ID last: %d\n", y)
-		return x //the number of event since IDs were reset
-    }
+	if result < 0 {
+		// fmt.Println("The result is negative:", result)
+		// fmt.Printf("ID current: %d\n", x)
+		// fmt.Printf("ID last: %d\n", y)
+		return x // the number of event since IDs were reset
+	}
 
-    return result // Return the calculated value
+	return result // Return the calculated value
 }
 
 func calculateAverage(buckets map[int]int) float64 {
