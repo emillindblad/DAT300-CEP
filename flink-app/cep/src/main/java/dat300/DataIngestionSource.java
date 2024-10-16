@@ -53,7 +53,7 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
         populateLoglines(logLineBuffer, internalBuffer);
 
         long startTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - startTime <= 30000) {}
+        while (System.currentTimeMillis() - startTime <= 15000) {}
 
         int internalBufferIdx = 0;
         long id = 1;

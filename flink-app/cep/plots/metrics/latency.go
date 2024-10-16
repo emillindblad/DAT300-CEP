@@ -124,6 +124,8 @@ func PlotJobLatency(records [][]string) *charts.Line {
 		AddSeries("AVG latency (MS)", yAxis)
 		
 
+	averageThroughput := calculateAverageLatency(buckets)	
+	fmt.Printf("Average Latency: %.2f ms\n", averageThroughput)
 	return line
 }
 
@@ -142,4 +144,18 @@ func getOrCreate(buckets map[int]TimeEntry, key int) TimeEntry {
     buckets[key] = newEntry // Add the new entry to the map
 
     return newEntry
+}
+
+func calculateAverageLatency(buckets map[int]TimeEntry) float64 {
+	if len(buckets) == 0 {
+		return 0 // Avoid division by zero
+	}
+
+	totalLatency := 0.0
+	count := 0
+	for _, entry := range buckets {
+		totalLatency += entry.avgLatency
+		count++
+	}
+	return totalLatency / float64(count)
 }
