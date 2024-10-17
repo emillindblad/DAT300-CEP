@@ -38,17 +38,20 @@ public class DataStreamJob {
         int sleepPeriod;
         int parallelismLevel;
         int bufferLimit;
+        long bufferTimeOut;
 
         if (args.length != 0) {
             batchSize = Integer.parseInt(args[0]);
             sleepPeriod = Integer.parseInt(args[1]);
             parallelismLevel = Integer.parseInt(args[2]);
             bufferLimit = Integer.parseInt(args[3]);
+            bufferTimeOut = Integer.parseInt(args[4]);
         } else {
             batchSize = 1000;
             sleepPeriod = 1000000; // 1000000 Nanoseconds = 1 ms
             parallelismLevel = 4;
             bufferLimit = 1024; // For example, 1024 KB (1 MB)
+            bufferTimeOut = 100; // Milliseconds, default = 100
         }
 
         //Configuration configuration = new Configuration();
@@ -56,9 +59,14 @@ public class DataStreamJob {
         //configuration.setLong("taskmanager.memory.network.size", bufferLimit * 1024); // Network buffer size in bytes
         //configuration.setLong("taskmanager.memory.task.size", bufferLimit * 1024);
 
-        System.out.printf("Configuration: Batchsize: %d items, SleepPeriod: %d ns ParallelismLevel: %d threads, BufferLimit %d kb\n",batchSize,sleepPeriod,parallelismLevel,bufferLimit);
+        System.out.printf(
+                "Configuration: Batchsize: %d items, SleepPeriod: %d ns ParallelismLevel: %d threads, BufferLimit %d kb BufferTimeout: %d ms\n",
+                batchSize,sleepPeriod,parallelismLevel,bufferLimit,bufferTimeOut
+        );
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(parallelismLevel);
+        System.out.println(env.getConfig());
+        env.setBufferTimeout(bufferTimeOut);
 
         DataStream<EntryWithTimeStamp> stream = env.addSource(new DataIngestionSource(
                 "athena-sshd-processed.log",
