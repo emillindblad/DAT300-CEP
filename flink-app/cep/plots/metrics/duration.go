@@ -24,18 +24,14 @@ func PlotJobDuration(records [][]string) *charts.Bar {
 		jobEndTime := ParseCsvStrToInt(record[2])
 
 		// Calculate job duration in nanoseconds and convert to seconds
-		duration := float64(jobEndTime-jobStartTime)
-		// duration := float64(jobEndTime-jobStartTime)
+		duration := float64(jobEndTime - jobStartTime)
 
-		// Append data
 		entryIDs = append(entryIDs, entryID)
 		durations = append(durations, opts.BarData{Value: duration})
 	}
 
-	// Create a new bar chart
 	bar := charts.NewBar()
 
-	// Set the chart title and axis labels
 	bar.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{
 			Title:    "Job Duration for Each Entry",
@@ -55,7 +51,6 @@ func PlotJobDuration(records [][]string) *charts.Bar {
 		}),
 	)
 
-	// Set the X-axis (entryId) and Y-axis (durations)
 	bar.SetXAxis(entryIDs).
 		AddSeries("Job Duration (s)", durations)
 

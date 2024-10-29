@@ -31,9 +31,7 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
     }
 
     @Override
-    public void close() throws Exception {
-
-    }
+    public void close() throws Exception {}
 
     private void fillInternalQueue() throws IOException {
         ArrayList<String> internalBuffer = new ArrayList<>();
@@ -47,38 +45,41 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
         int size = internalBuffer.size() - 1;
         System.out.println("SIZE is " + size);
 
+        //create loglines before loop input loop for optimization
+        ArrayList<LogLine> logLineBuffer = new ArrayList<>();
+        populateLoglines(logLineBuffer, internalBuffer);
+
         long startTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - startTime <= 30000) {}
+        while (System.currentTimeMillis() - startTime <= 10000) {}
+
         int internalBufferIdx = 0;
+        long id = 1;
 
         while (System.currentTimeMillis() - startTime <= duration) {
             long beforeBatchTime = System.nanoTime();
-            if (internalBufferIdx >= size) {
+            if (internalBufferIdx + batchSize >= size) {
                 internalBufferIdx = 0;
-                System.out.println("Reset internalBufferIdx to " + internalBufferIdx);
+                //System.out.println("Reset internalBufferIdx to " + internalBufferIdx);
             }
-            System.out.println("Starting for-loop with i = " + internalBufferIdx);
+            //System.out.println("Starting for-loop with i = " + internalBufferIdx);
 
-            for (int i = internalBufferIdx ; i < internalBufferIdx + batchSize; i++) {
-                System.out.println(i);
+            //moved here for optimization, will reduce accuracy but should be good enough
+            int internalQueuSize = internalQueue.size();
+            long inputTimestamp = System.nanoTime(); //syscall == expensive in time
+            int endIdx = internalBufferIdx + batchSize;
 
-                if (i == size) {
-                    break;
-                }
-
-                LogLine logData = new LogLine(internalBuffer.get(i));
-
-                long inputTimestamp = System.nanoTime();
-
-                internalQueue.add(new EntryWithTimeStamp(i + internalBufferIdx, logData, inputTimestamp, internalQueue.size()));
-
+            for (int i = internalBufferIdx ; i < endIdx; i++) {
+                internalQueue.add(new EntryWithTimeStamp(id, logLineBuffer.get(i), inputTimestamp,internalQueuSize));
+                inputTimestamp++; //adding 1 for ordering (part of optimization)
+                id++;
             }
             internalBufferIdx = internalBufferIdx+batchSize;
-            System.out.println("Batch completed");
-            System.out.println("InternalBufferIdx is " + internalBufferIdx);
+            //System.out.println("Batch completed");
+            //System.out.println("InternalBufferIdx is " + internalBufferIdx);
             while (System.nanoTime() < beforeBatchTime + sleepPeriod ) {
             }
         }
+        System.out.println("Total events pushed: " + id);
         internalThreadCompleted = true;
     }
 
@@ -97,6 +98,13 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
             if (!internalQueue.isEmpty()) {
                 ctx.collect(internalQueue.poll());
             }
+        }
+    }
+
+    private void populateLoglines(ArrayList<LogLine> logLineBuffer,ArrayList<String> internalBuffer){
+        for (int i = 0; i < internalBuffer.size(); i++) {
+            LogLine logData = new LogLine(internalBuffer.get(i));
+            logLineBuffer.add(logData);
         }
     }
 
