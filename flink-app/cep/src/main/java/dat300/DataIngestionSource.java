@@ -31,9 +31,7 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
     }
 
     @Override
-    public void close() throws Exception {
-
-    }
+    public void close() throws Exception {}
 
     private void fillInternalQueue() throws IOException {
         ArrayList<String> internalBuffer = new ArrayList<>();
@@ -48,7 +46,6 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
         System.out.println("SIZE is " + size);
 
         //create loglines before loop input loop for optimization
-
         ArrayList<LogLine> logLineBuffer = new ArrayList<>();
         populateLoglines(logLineBuffer, internalBuffer);
 
@@ -72,7 +69,6 @@ public class DataIngestionSource extends RichSourceFunction<EntryWithTimeStamp> 
             int endIdx = internalBufferIdx + batchSize;
 
             for (int i = internalBufferIdx ; i < endIdx; i++) {
-                //LogLine logData = new LogLine(internalBuffer.get(i));
                 internalQueue.add(new EntryWithTimeStamp(id, logLineBuffer.get(i), inputTimestamp,internalQueuSize));
                 inputTimestamp++; //adding 1 for ordering (part of optimization)
                 id++;

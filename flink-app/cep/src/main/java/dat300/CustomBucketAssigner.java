@@ -4,9 +4,6 @@ import org.apache.flink.core.io.SimpleVersionedSerializer;
 import org.apache.flink.streaming.api.functions.sink.filesystem.BucketAssigner;
 import org.apache.flink.streaming.api.functions.sink.filesystem.bucketassigners.SimpleVersionedStringSerializer;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 public class CustomBucketAssigner implements BucketAssigner<EntryWithTimeStamp, String> {
     private final int batchSize;
     private final long sleepPeriod;

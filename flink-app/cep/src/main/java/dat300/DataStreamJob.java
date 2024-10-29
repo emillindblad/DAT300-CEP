@@ -8,7 +8,6 @@ import org.apache.flink.cep.PatternSelectFunction;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.cep.pattern.conditions.IterativeCondition;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.file.sink.FileSink;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -19,7 +18,6 @@ import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -54,14 +52,9 @@ public class DataStreamJob {
             bufferTimeOut = 100; // Milliseconds, default = 100
         }
 
-        //Configuration configuration = new Configuration();
-        // Set the buffer size (convert KB to bytes)
-        //configuration.setLong("taskmanager.memory.network.size", bufferLimit * 1024); // Network buffer size in bytes
-        //configuration.setLong("taskmanager.memory.task.size", bufferLimit * 1024);
-
         System.out.printf(
-                "Configuration: Batchsize: %d items, SleepPeriod: %d ns ParallelismLevel: %d threads, BufferLimit %d kb BufferTimeout: %d ms\n",
-                batchSize,sleepPeriod,parallelismLevel,bufferLimit,bufferTimeOut
+            "Configuration: Batchsize: %d items, SleepPeriod: %d ns ParallelismLevel: %d threads, BufferLimit %d kb BufferTimeout: %d ms\n",
+            batchSize,sleepPeriod,parallelismLevel,bufferLimit,bufferTimeOut
         );
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(parallelismLevel);
@@ -69,15 +62,16 @@ public class DataStreamJob {
         env.setBufferTimeout(bufferTimeOut);
 
         DataStream<EntryWithTimeStamp> stream = env.addSource(new DataIngestionSource(
-                "athena-sshd-processed.log",
-                batchSize,
-                sleepPeriod,
-                1000 * 100)
+            "athena-sshd-processed.log",
+            batchSize,
+            sleepPeriod,
+            1000 * 100)
         ).assignTimestampsAndWatermarks(WatermarkStrategy.<EntryWithTimeStamp>forBoundedOutOfOrderness(Duration.ofSeconds(10))
-                .withTimestampAssigner((entry, timestamp) -> scaleTimestamp(entry.logLine.getUnixTimeStamp()))); //source should not be parallel
+            .withTimestampAssigner((entry, timestamp) -> scaleTimestamp(entry.logLine.getUnixTimeStamp()))); //source should not be parallel
 
-        // Good thing to mention in the report
         KeyedStream<EntryWithTimeStamp,String> keyedStream = stream.keyBy(value -> value.logLine.getIp());
+
+        // WindowFilter
 
         /*
         Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
@@ -110,78 +104,74 @@ public class DataStreamJob {
                 }).within(Duration.ofMinutes(2));
          */
 
-
+        // SimpleFilter
         Pattern<EntryWithTimeStamp, ?> pattern = Pattern.<EntryWithTimeStamp>begin("InvalidUser")
-                .where(new IterativeCondition<EntryWithTimeStamp>() {
-                    @Override
-                    public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
-                        // Check if the message contains "Invalid user"
-                        if (currentEvent.getLogLine().message.contains("Invalid user")) {
-                            // You can log the matched event or perform additional actions here if needed
-                            return true; // This event matches the "InvalidUser" pattern
-                        }
-                        return false; // This event does not match
-                    }
-                });
+        .where(new IterativeCondition<EntryWithTimeStamp>() {
+            @Override
+            public boolean filter(EntryWithTimeStamp currentEvent, Context<EntryWithTimeStamp> ctx) throws Exception {
+                // Check if the message contains "Invalid user"
+                if (currentEvent.getLogLine().message.contains("Invalid user")) {
+                    return true; // This event matches the "InvalidUser" pattern
+                }
+                return false; // This event does not match
+            }
+        });
 
         PatternStream<EntryWithTimeStamp> patternStream = CEP.pattern(keyedStream, pattern);
 
         DataStream<EntryWithTimeStamp> patternMatches = patternStream.select(
-                new PatternSelectFunction<EntryWithTimeStamp, EntryWithTimeStamp>() {
-                    @Override
-                    public EntryWithTimeStamp select(Map<String, List<EntryWithTimeStamp>> pattern) throws Exception {
-                        return pattern.get("InvalidUser").get(0);
-                    }
+            new PatternSelectFunction<EntryWithTimeStamp, EntryWithTimeStamp>() {
+                @Override
+                public EntryWithTimeStamp select(Map<String, List<EntryWithTimeStamp>> pattern) throws Exception {
+                    return pattern.get("InvalidUser").get(0);
                 }
+            }
         );
 
         DataStream<EntryWithTimeStamp> exitStamp = patternMatches
-                //DataStream<EntryWithTimeStamp> exitStamp = stream
-                .map(new MapFunction<EntryWithTimeStamp, EntryWithTimeStamp>() {
-                    @Override
-                    public EntryWithTimeStamp map(EntryWithTimeStamp entry) throws Exception {
-                        entry.setPostTimeStamp(System.nanoTime());
-                        //System.out.println(entry);
-                        return entry;
-                    }
-                });
+        .map(new MapFunction<EntryWithTimeStamp, EntryWithTimeStamp>() {
+            @Override
+            public EntryWithTimeStamp map(EntryWithTimeStamp entry) throws Exception {
+                entry.setPostTimeStamp(System.nanoTime());
+                //System.out.println(entry);
+                return entry;
+            }
+        });
 
         String prefix = "SimpleTest";
         CustomBucketAssigner bucket = new CustomBucketAssigner(prefix,batchSize, sleepPeriod, parallelismLevel, bufferLimit, GetDateTime());
         FileSink<EntryWithTimeStamp> outSink = FileSink
-                .forRowFormat(new Path("./outSink"), new SimpleStringEncoder<EntryWithTimeStamp>("UTF-8"))
-                .withBucketAssigner(bucket)
-                .withRollingPolicy(
-                        OnCheckpointRollingPolicy.build()
-                ).build();
+        .forRowFormat(new Path("./outSink"), new SimpleStringEncoder<EntryWithTimeStamp>("UTF-8"))
+        .withBucketAssigner(bucket)
+        .withRollingPolicy(
+            OnCheckpointRollingPolicy.build()
+        ).build();
 
         exitStamp.sinkTo(outSink);
 
         env.execute("DataStreamJob");
         System.out.println(bucket);
     }
-    public static Long scaleTimestamp(Long timestamp) {
-        // Initialize the first timestamp on the first call
+    public static long scaleTimestamp(long timestamp) {
         if (firstTimestamp == null) {
-            firstTimestamp = timestamp; // Set the first timestamp
+            firstTimestamp = timestamp;
             lastTimestamp = timestamp;
             currentLoopTimestamp = timestamp;
             return timestamp; // The first scaled timestamp is the same as the original
         }
         if(timestamp < lastTimestamp) {
-            currentLoopTimestamp = lastScaled; // Set the first timestamp
+            currentLoopTimestamp = lastScaled;
             //System.out.println("New base:" + currentLoopTimestamp);
         }
 
         lastTimestamp = timestamp;
-        // Calculate the time difference from the first timestamp (in milliseconds)
         long timeDifference = timestamp - firstTimestamp;
 
         // Scale the time difference (1 minute = 1 second)
         long scaledDifference = timeDifference / SCALE_FACTOR;
 
         // Create a new valid timestamp based on the scaled difference
-        Long newScaledTimestamp = currentLoopTimestamp + scaledDifference;
+        long newScaledTimestamp = currentLoopTimestamp + scaledDifference;
         lastScaled = newScaledTimestamp;
         //System.out.println("Scaled ts: "+ timestamp);
 

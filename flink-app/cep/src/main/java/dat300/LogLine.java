@@ -1,6 +1,5 @@
 package dat300;
 
-import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -25,10 +24,6 @@ public class LogLine {
         this.ip = getIp();
     }
 
-    public LocalDateTime getTimeStamp() {
-        return this.timeStamp;
-    }
-
     public String getIp() {
         Pattern pattern = Pattern.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
         Matcher matcher = pattern.matcher(this.message);
@@ -41,7 +36,6 @@ public class LogLine {
 
 
     private LocalDateTime createTimeStamp(String[] splitTimeHostname) {
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd HH:mm:ss");
         String timeStampString = String.format("%s %s %s",splitTimeHostname[0], splitTimeHostname[1], splitTimeHostname[2]);
         int currentYear = LocalDateTime.now().getYear();
         

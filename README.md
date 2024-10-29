@@ -1,3 +1,6 @@
+## Scalable Complex Event Processing
+This was a project in the course DAT300 at Chalmers University of Technology. The repository is kept as reference for future projects in the course.
+
 ## How to create and run a Flink app in Intellij
 
 You need Java 11 installed.
@@ -28,4 +31,4 @@ You need Java 11 installed.
 5. Setup the sdk and choose java 11
 6. Right click the `main` function and click on `Modify Run configuration`
 7. Click on the blue `Modify options` text and make sure that `Add depencencies with "provided" scope to classpath` is ticked ✓
-8. Run your shitty app
+8. Run your app
