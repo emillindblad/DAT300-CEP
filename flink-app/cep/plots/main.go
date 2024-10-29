@@ -20,7 +20,6 @@ func loadCsvFromDir(path string) [][]string {
 	var records [][]string
 
 	files, err := os.ReadDir(path)
-	// fmt.Println(files)
 	if err != nil {
 		log.Fatal("Failed to read dir")
 	}
@@ -55,23 +54,12 @@ func loadCsvFromDir(path string) [][]string {
 		return num1 < num2
 	})
 	updateIds(records)
-	//sorting back by output timestamp to calc correct througput later
-	/*sort.Slice(records, func(i, j int) bool {
-		num1, err1 := strconv.Atoi(records[i][2])
-		num2, err2 := strconv.Atoi(records[j][2])
-		if err1 != nil || err2 != nil {
-			log.Fatal("Failed to convert to integer:", err1, err2)
-		}
-		return num1 < num2
-	})*/
-	// printFirstAndLast10(records)
 	return records
 }
 
 func printFirstAndLast10(records [][]string) {
 	length := len(records)
 
-	// Print the first 10 elements
 	fmt.Println("First 10 records:")
 	if length <= 10 {
 		// If the slice has 10 or fewer elements, print the entire slice
@@ -96,18 +84,15 @@ func printFirstAndLast10(records [][]string) {
 }
 
 func updateIds(records [][]string) {
-	var lastId int = 0
-	var lastNewId int = 0
+	lastId := 0
+	lastNewId := 0
 	for _, job := range records {
 		currentId := int(metrics.ParseCsvStrToInt(job[0]))
 		newId := calcNewId(currentId, lastId, lastNewId)
-		// fmt.Println("new id:", newId)
 		lastId = currentId
 		lastNewId = newId
 		job[0] = strconv.Itoa(newId)
 	}
-
-	// return result // Return the calculated value
 }
 
 func calcNewId(currentId int, lastId int, lastNewId int) int {
@@ -142,9 +127,6 @@ func main() {
 		metrics.PlotJobQ(records),
 	)
 
-	// Render the charts to an HTML file
-	// suffix := base64.StdEncoding.EncodeToString([]byte(randNum))
-	// t := time.Now()
 	fileName := fmt.Sprintf("%s.html", getFilename(dirPath))
 
 	f, err := os.Create(fileName)

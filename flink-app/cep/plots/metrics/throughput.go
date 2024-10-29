@@ -13,12 +13,6 @@ func PlotThroughPut(records [][]string) *charts.Line {
 	fmt.Println("Creating throughput plot")
 
 	denominator := 1000000000 // ms=1000000, s =1000000000
-	// startTime := ParseCsvStrToInt(records[1][1])
-	// endTime := ParseCsvStrToInt(records[len(records)-1][2])
-	// fmt.Println("startTime", startTime)
-	// fmt.Println("endTime", endTime)
-	// fmt.Println("total s", (endTime-startTime)/int64(denominator))
-
 	buckets := make(map[int]int)
 	for _, job := range records {
 		currentId := int(ParseCsvStrToInt(job[0]))
@@ -28,25 +22,11 @@ func PlotThroughPut(records [][]string) *charts.Line {
 		buckets[interval] += processedEvents
 	}
 
-	/* for t := startTime; t <= endTime; t += interval {
-		activeJobs := 0
-		for _, job := range records {
-			jobStart := parseCsvStrToInt(job[1])
-			jobEnd := parseCsvStrToInt(job[2])
-			if jobStart <= t && jobEnd > t {
-				activeJobs++
-			}
-		}
-		timePoints = append(timePoints, t)
-		throughPut = append(throughPut, int(activeJobs))
-	} */
-
 	keys := make([]int, 0, len(buckets))
 	for k := range buckets {
 		keys = append(keys, k)
 	}
 	sort.Ints(keys)
-	// fmt.Println(keys)
 
 	averageThroughput := calculateAverage(buckets)
 
@@ -68,12 +48,10 @@ func PlotThroughPut(records [][]string) *charts.Line {
 			Start:      0,
 			End:        100,
 		}),
-		// charts.WithTooltipOpts(opts.Tooltip{Show: true}),
 	)
 
 	var xAxis []int
 	for i := range keys {
-		// for i := 0; i <= len(buckets); i++ {
 		xAxis = append(xAxis, i)
 	}
 
@@ -81,7 +59,6 @@ func PlotThroughPut(records [][]string) *charts.Line {
 		AddSeries("Throughput", generateLineItems(keys, buckets)).
 		SetSeriesOptions(
 			charts.WithLineChartOpts(opts.LineChart{}),
-			// charts.WithLabelOpts(),
 		)
 
 	fmt.Printf("Average Throughput: %.2f events\n", averageThroughput)
@@ -97,16 +74,13 @@ func generateLineItems(keys []int, buckets map[int]int) []opts.LineData {
 }
 
 func calcProcessedObjects(x, y int) int {
-	result := x - y // Calculate the difference
+	result := x - y
 
 	if result < 0 {
-		// fmt.Println("The result is negative:", result)
-		// fmt.Printf("ID current: %d\n", x)
-		// fmt.Printf("ID last: %d\n", y)
-		return x // the number of event since IDs were reset
+		return x
 	}
 
-	return result // Return the calculated value
+	return result
 }
 
 func calculateAverage(buckets map[int]int) float64 {
